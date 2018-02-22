@@ -27,7 +27,6 @@ class Window(object):
 
         # Get appropriate window size.
         self.width, self.height = self._get_window_size(size, fullscreen)
-        print(self.width, self.height)
         self.title = title
 
         # Create the frame.
