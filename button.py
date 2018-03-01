@@ -1,35 +1,28 @@
-from util import simplegui
-from vector import Vector
+from typing import Tuple
 
-class Button:
-
-	def __init__(self, caption, size, position, back_colour, over_colour):
-
-		self.caption = caption
-		self.size = size
-		self.position = position
-		self.back_colour = back_colour
-		self.over_colour = over_colour
-		self.update_vertices()
-
-	def update_centre():
-
-		self.centre = self.position + self.size / 2
-
-	def update_vertices():
-
-		self.vertices = [
-			self.position, # Top-left
-			self.position + Vector(1, 0) * self.size,
-			self.position + Vector(0, 1) * self.size,
-			self.position + Vector(1, 1) * self.size
-		]
-
-	def object_render(canvas):
-
-		self.update_centre()
-		self.draw_centre()
-		self.draw_polygon(self.vertices, 1, self.back_colour, self.back_colour)
+from util import Color, simplegui
+from window import Renderable
 
 
+class Button(Renderable):
 
+    def __init__(self, caption: str, pos: Tuple[int, int], size: Tuple[int, int],
+                 bg: Color, fg: Color):
+        self.caption = caption
+        self.size = size
+        self.pos = pos
+        self.bg = bg
+        self.fg = fg
+
+        self.vertices = (
+            self.pos,
+            (self.pos[0] + self.size[0], self.pos[1]),
+            (self.pos[0] + self.size[0], self.pos[1] + self.size[1]),
+            (self.pos[0], self.pos[1] + self.size[1])
+        )
+
+    def get_center(self) -> Tuple[int, int]:
+        return self.pos[0] + self.size[0], self.pos[1] + self.size[1]
+
+    def render(self, canvas: simplegui.Canvas):
+        canvas.draw_polygon(self.vertices, 1, str(self.bg), str(self.bg))

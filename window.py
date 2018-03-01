@@ -1,11 +1,7 @@
 from typing import Tuple
 
-from constants import PYGAME_HACKS
-from constants import WINDOW_SIZE2
-from constants import Key
-
-from util import simplegui
-from util import pygame
+from constants import PYGAME_HACKS, WINDOW_SIZE2, Key
+from util import simplegui, pygame
 
 
 class Window(object):
@@ -21,7 +17,7 @@ class Window(object):
         :param size: (int, int)
         :param controls: bool
         """
-        self.handler = WindowHandler()  # A noop window handler.
+        self.handler = WindowHandler(self)  # A noop window handler.
 
         self.controls = controls
         self._show_control_panel(controls)  # Set control panel visibility.
@@ -301,6 +297,21 @@ class WindowHandler(object):
         Called whenever the window receives a key up event.
 
         :param key: int
+        :return: None
+        """
+        pass
+
+
+class Renderable(object):
+    """
+    A renderable object to be drawn on the canvas.
+    """
+
+    def render(self, canvas: simplegui.Canvas):
+        """
+        Called to render the object.
+
+        :param canvas: Canvas
         :return: None
         """
         pass

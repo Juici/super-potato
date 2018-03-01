@@ -1,0 +1,2 @@
+# super-potato
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/cfa597ee90eb41ffac45d256e3b15bf2)](https://app.codacy.com/app/juicy66173/super-potato?utm_source=github.com&utm_medium=referral&utm_content=spooky-squad/super-potato&utm_campaign=badger)
