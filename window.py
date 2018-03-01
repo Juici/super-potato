@@ -21,6 +21,8 @@ class Window(object):
         :param size: (int, int)
         :param controls: bool
         """
+        self.handler = WindowHandler()  # A noop window handler.
+
         self.controls = controls
         self._show_control_panel(controls)  # Set control panel visibility.
         self.fullscreen = self._set_fullscreen(fullscreen)  # Set fullscreen status.
@@ -58,33 +60,37 @@ class Window(object):
     def _render(self, canvas: simplegui.Canvas):
         """
         Called by the window draw handler every game tick.
+        Passes the render to the handler.
 
         :param canvas: Canvas
         :return: None
         """
-        pass
+        return self.handler.render(canvas)
 
     def _on_click(self, pos: Tuple[int, int]):
         """
         Called whenever the window receives a mouse click event.
+        Passes the event to the handler.
 
         :param pos: (int, int)
         :return: None
         """
-        pass
+        return self.handler.on_click(pos)
 
     def _on_drag(self, pos: Tuple[int, int]):
         """
         Called whenever the window receives a mouse drag event.
+        Passes the event to the handler.
 
         :param pos: (int, int)
         :return: None
         """
-        pass
+        return self.handler.on_drag(pos)
 
     def _on_key_down(self, key: int):
         """
         Called whenever the window receives a key down event.
+        Passes the event to the handler.
 
         :param key: int
         :return: None
@@ -93,14 +99,17 @@ class Window(object):
         if self.fullscreen and key == Key.ESCAPE:
             self.destroy()
 
+        return self.handler.on_key_down(Key(key))
+
     def _on_key_up(self, key: int):
         """
         Called whenever the window receives a key up event.
+        Passes the event to the handler.
 
         :param key: int
         :return: None
         """
-        pass
+        return self.handler.on_key_up(Key(key))
 
     # Pygame
 
@@ -236,3 +245,62 @@ class Window(object):
 
         # width and height should be ints
         return int(round(width)), int(round(height))
+
+
+class WindowHandler(object):
+    """
+    A WindowHandler handles the rendering of the window and receives all events.
+    """
+
+    def __init__(self, window: Window):
+        """
+        Creates a window handler.
+
+        :param window: Window
+        """
+        self.window = window
+
+    def render(self, canvas: simplegui.Canvas):
+        """
+        Called by the window draw handler every game tick.
+
+        :param canvas: Canvas
+        :return: None
+        """
+        pass
+
+    def on_click(self, pos: Tuple[int, int]):
+        """
+        Called whenever the window receives a mouse click event.
+
+        :param pos: (int, int)
+        :return: None
+        """
+        pass
+
+    def on_drag(self, pos: Tuple[int, int]):
+        """
+        Called whenever the window receives a mouse drag event.
+
+        :param pos: (int, int)
+        :return: None
+        """
+        pass
+
+    def on_key_down(self, key: Key):
+        """
+        Called whenever the window receives a key down event.
+
+        :param key: int
+        :return: None
+        """
+        pass
+
+    def on_key_up(self, key: Key):
+        """
+        Called whenever the window receives a key up event.
+
+        :param key: int
+        :return: None
+        """
+        pass
