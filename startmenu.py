@@ -1,13 +1,13 @@
-from util import simplegui
-from window import WindowHandler
-import button
+from button import Button
+from window import Window, WindowHandler
+from util import simplegui, Color
+
 
 class StartMenu(WindowHandler):
 
-    def __init__(self):
+    def __init__(self, window: Window):
+        super().__init__(window)
+        self.btn_start = Button("Start Game", (200, 50), (50, 50), Color(255, 0, 0), Color(0, 0, 255))
 
-    	self.btn_start = button("Start Game", Vector(200, 50), Vector(50, 50), "Red", "Blue")
-
-    def render(self):
-
-    	self.btn_start().update()
+    def render(self, canvas: simplegui.Canvas):
+        self.btn_start.render(canvas)
