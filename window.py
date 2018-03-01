@@ -62,7 +62,7 @@ class Window(object):
         :param canvas: Canvas
         :return: None
         """
-        pass
+        self.handler.draw()
 
     def _on_click(self, pos: Tuple[int, int]):
         """
