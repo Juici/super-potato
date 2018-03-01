@@ -119,12 +119,14 @@ class Vector(object):
     # Returns the angle between this vector and another one
     # You will need to use the arccosine function:
     # acos in the math library
-    def angle(self, other) -> 'Vector':
+    def angle(self, other):
         """
-        Returns the angle between two vectors
-        in the range of 0 tp pi radians.
+        Returns an angle between two vectors
+        in the range of 0 to pi radians.
+
+        :return: Vector
         """
-        return math.acos(self.normalize().Dot(other.normalize()))
+        return math.acos(self.normalize().dot(other.normalize()))
 
     def copy(self) -> 'Vector':
         """
