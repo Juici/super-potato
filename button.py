@@ -40,6 +40,7 @@ class Button(Renderable):
         font_bounds = font.SysFont(_SIMPLEGUIFONTFACE_TO_PYGAMEFONTNAME[font_face], font_size).size(caption)
 
         # General attributes
+        self.mouse_over = False
         self.caption = caption
         self.size = size
         self.pos = pos
@@ -74,6 +75,14 @@ class Button(Renderable):
 
     def get_center(self) -> Tuple[int, int]:
         return self.center
+    
+    def set_click_handler(self, function_ref):
+        self.click_handler = function_ref
+
+    def check_click(self):
+        if self.mouse_over:
+            self.click_handler(self)
+        return self.mouse_over
 
     def render(self, canvas: simplegui.Canvas):
         x0 = self.vertices[0][0];
@@ -87,9 +96,11 @@ class Button(Renderable):
         if (mouse_x >= x0 and mouse_x <= x1) and (mouse_y >= y0 and mouse_y <= y1):
             self.fg_target = self.fg_over
             self.bg_target = self.bg_over
+            self.mouse_over = True
         else:
             self.fg_target = self.fg
             self.bg_target = self.bg
+            self.mouse_over = False
 
         # Linearly interpolate colours for smooth effect
         self.bg_color = lerp_color(self.bg_color, self.bg_target, self.lerp_factor)
