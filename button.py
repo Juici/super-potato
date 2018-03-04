@@ -2,8 +2,14 @@ from typing import Tuple
 
 from util import Color, simplegui
 from window import Renderable
-from pygame import mouse
+from pygame import mouse, font
 from math import floor
+
+# Taken directly from simplegui source
+_SIMPLEGUIFONTFACE_TO_PYGAMEFONTNAME = {
+    'monospace': 'courier,couriernew',
+    'sans-serif': 'arial,tahoma',
+    'serif': 'timesnewroman,garamond,georgia'}
 
 # May be best put these methods in a different file
 
@@ -26,8 +32,12 @@ def get_colour_str(col: Color):
 
 class Button(Renderable):
 
-    def __init__(self, caption: str, pos: Tuple[int, int], size: Tuple[int, int], border_size: int,
-                 bg: Color, fg: Color, bg_over: Color, fg_over: Color, lerp_factor: float):
+    def __init__(self, caption: str, font_size: int, font_face: str,
+        pos: Tuple[int, int], size: Tuple[int, int], border_size: int,
+        bg: Color, fg: Color, bg_over: Color, fg_over: Color, lerp_factor: float):
+
+        # Get string bounds
+        font_bounds = font.SysFont(_SIMPLEGUIFONTFACE_TO_PYGAMEFONTNAME[font_face], font_size).size(caption)
 
         # General attributes
         self.caption = caption
@@ -35,6 +45,12 @@ class Button(Renderable):
         self.pos = pos
         self.border_size = border_size
         self.lerp_factor = lerp_factor
+        self.font_size = font_size
+        self.font_face = font_face
+        self.center = (
+            self.pos[0] + self.size[0] / 2 - font_bounds[0] / 2,
+            self.pos[1] + self.size[1] / 2 + font_bounds[1] / 4
+        )
 
         # Initial colours
         self.bg = bg
@@ -57,7 +73,7 @@ class Button(Renderable):
         )
 
     def get_center(self) -> Tuple[int, int]:
-        return self.pos[0] + self.size[0], self.pos[1] + self.size[1]
+        return self.center
 
     def render(self, canvas: simplegui.Canvas):
         x0 = self.vertices[0][0];
@@ -79,4 +95,6 @@ class Button(Renderable):
         self.bg_color = lerp_color(self.bg_color, self.bg_target, self.lerp_factor)
         self.fg_color = lerp_color(self.fg_color, self.fg_target, self.lerp_factor)
 
-        canvas.draw_polygon(self.vertices, self.border_size, get_colour_str(self.fg_color), get_colour_str(self.bg_color))
+        center_x, center_y = self.get_center()
+        canvas.draw_polygon(self.vertices, self.border_size, get_colour_str(self.bg_color), get_colour_str(self.bg_color))
+        canvas.draw_text(self.caption, (center_x, center_y), self.font_size, get_colour_str(self.fg_color), self.font_face)
