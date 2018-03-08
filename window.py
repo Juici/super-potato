@@ -221,7 +221,7 @@ class Renderable(object):
         The bounds of the rendered object.
         Used to handle click events.
         """
-        return Polygon()
+        raise NotImplementedError
 
     def is_mouse_over(self) -> bool:
         """
@@ -252,6 +252,9 @@ class RenderableParent(Renderable):
         for child in self.children:
             child.render(canvas)
 
+    def get_bounds(self) -> Polygon:
+        raise NotImplementedError
+
     def on_click(self, pos: Vector):
         """
         Called when object receives a click event.
@@ -278,6 +281,15 @@ class WindowHandler(RenderableParent):
         Called by the window draw handler every game tick.
         """
         super().render(canvas)
+
+    def get_bounds(self) -> Polygon:
+        size = self.window.get_size()
+        return Polygon(
+            Vector(0, 0),
+            Vector(size[0], 0),
+            Vector(size[0], size[1]),
+            Vector(0, size[1]),
+        )
 
     def on_click(self, pos: Vector):
         """
