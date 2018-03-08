@@ -1,7 +1,9 @@
-from typing import Tuple
+from typing import List, Tuple
 
-from constants import PYGAME_HACKS, WINDOW_SIZE2, Key
-from util import simplegui, pygame
+from constants import HIDPI_FACTOR, Key
+from modules import pygame, simplegui
+from util import Polygon
+from vector import Vector
 
 
 class Window(object):
@@ -9,19 +11,16 @@ class Window(object):
     The game window, only one may be created.
     """
 
-    def __init__(self, title: str, size: Tuple[int, int], controls: bool = False, fullscreen: bool = False):
+    def __init__(self, title: str, size: Tuple[int, int], fullscreen: bool = False):
         """
         Creates a new game window.
-
-        :param title: str
-        :param size: (int, int)
-        :param controls: bool
         """
+        self.hidpi_factor = HIDPI_FACTOR  # HiDPI scale factor.
+
         self.handler = WindowHandler(self)  # A noop window handler.
 
-        self.controls = controls
-        self._show_control_panel(controls)  # Set control panel visibility.
-        self.fullscreen = self._set_fullscreen(fullscreen)  # Set fullscreen status.
+        self._hide_control_panel()  # Hide control panel.
+        self.fullscreen = self._set_fullscreen(fullscreen)  # Set fullscreen state.
 
         # Get appropriate window size.
         self.width, self.height = self._get_window_size(size, fullscreen)
@@ -40,85 +39,20 @@ class Window(object):
     def show(self):
         """
         Shows the window.
-
-        :return: None
         """
         self.frame.start()
 
     def destroy(self):
         """
         Destroys the window.
-
-        :return: None
         """
         self.frame.stop()
-
-    def _render(self, canvas: simplegui.Canvas):
-        """
-        Called by the window draw handler every game tick.
-        Passes the render to the handler.
-
-        :param canvas: Canvas
-        :return: None
-        """
-        return self.handler.render(canvas)
-
-    def _on_click(self, pos: Tuple[int, int]):
-        """
-        Called whenever the window receives a mouse click event.
-        Passes the event to the handler.
-
-        :param pos: (int, int)
-        :return: None
-        """
-        return self.handler.on_click(pos)
-
-    def _on_drag(self, pos: Tuple[int, int]):
-        """
-        Called whenever the window receives a mouse drag event.
-        Passes the event to the handler.
-
-        :param pos: (int, int)
-        :return: None
-        """
-        return self.handler.on_drag(pos)
-
-    def _on_key_down(self, key: int):
-        """
-        Called whenever the window receives a key down event.
-        Passes the event to the handler.
-
-        :param key: int
-        :return: None
-        """
-        # Escape out of fullscreen mode
-        if self.fullscreen and key == Key.ESCAPE:
-            self.destroy()
-
-        return self.handler.on_key_down(Key(key))
-
-    def _on_key_up(self, key: int):
-        """
-        Called whenever the window receives a key up event.
-        Passes the event to the handler.
-
-        :param key: int
-        :return: None
-        """
-        return self.handler.on_key_up(Key(key))
-
-    # Pygame
 
     # noinspection PyMethodMayBeStatic
     def get_title(self) -> str:
         """
         Returns the title of the window.
-
-        :return: str
         """
-        if not PYGAME_HACKS:
-            return self.title
-
         return pygame.display.get_caption()
 
     # noinspection PyMethodMayBeStatic
@@ -126,30 +60,69 @@ class Window(object):
         """
         Sets the title of the window.
         """
-        if not PYGAME_HACKS:
-            return
-
         return pygame.display.set_caption(title)
+
+    # noinspection PyMethodMayBeStatic
+    def get_cursor_pos(self) -> Vector:
+        x, y = pygame.mouse.get_pos()
+        return Vector(x, y)
+
+    # noinspection PyMethodMayBeStatic
+    def set_cursor_pos(self, pos: Vector):
+        return pygame.mouse.set_pos((pos.x, pos.y))
+
+    def get_size(self) -> Tuple[int, int]:
+        return self.width, self.height
+
+    # Event handlers
+
+    def _render(self, canvas: simplegui.Canvas):
+        """
+        Called by the window draw handler every game tick.
+        Passes the render to the handler.
+        """
+        if self.handler is not None:
+            self.handler.render(canvas)
+
+    def _on_click(self, pos: Tuple[int, int]):
+        """
+        Called whenever the window receives a mouse click event.
+        Passes the event to the handler.
+        """
+        if self.handler is not None:
+            self.handler.on_click(Vector(pos[0], pos[1]))
+
+    def _on_drag(self, pos: Tuple[int, int]):
+        """
+        Called whenever the window receives a mouse drag event.
+        Passes the event to the handler.
+        """
+        if self.handler is not None:
+            self.handler.on_drag(Vector(pos[0], pos[1]))
+
+    def _on_key_down(self, key: int):
+        """
+        Called whenever the window receives a key down event.
+        Passes the event to the handler.
+        """
+        if self.handler is not None:
+            self.handler.on_key_down(Key(key))
+
+    def _on_key_up(self, key: int):
+        """
+        Called whenever the window receives a key up event.
+        Passes the event to the handler.
+        """
+        if self.handler is not None:
+            self.handler.on_key_up(Key(key))
+
+    # Internal
 
     # noinspection PyProtectedMember
     def _create_frame(self) -> simplegui.Frame:
         """
         Creates the window frame, magic may or may not come included.
         """
-        frame = None
-
-        if self.controls:
-            frame = simplegui.create_frame(self.title, self.width, self.height)
-        elif not PYGAME_HACKS:
-            frame = simplegui.create_frame(self.title, self.width, self.height, control_width=0)
-
-        if frame is not None:
-            # Fix visual buffer issue in pygame implementation of simplegui (ignoring PYGAME_HACKS = False).
-            if pygame is not None:
-                pygame.display.flip()
-
-            return frame
-
         offset = 4
         fake_width = self.width - offset
         fake_height = self.height - offset
@@ -185,23 +158,17 @@ class Window(object):
         return frame
 
     @staticmethod
-    def _show_control_panel(value: bool):
+    def _hide_control_panel():
         """
         Attempts to hide the control panel.
         """
-        if not PYGAME_HACKS:
-            return
-
-        simplegui.Frame._hide_controlpanel = not value
+        simplegui.Frame._hide_controlpanel = True
 
     @staticmethod
     def _set_fullscreen(value: bool) -> bool:
         """
         Attempts to set the fullscreen status.
         """
-        if not PYGAME_HACKS:
-            return False
-
         # noinspection PyProtectedMember
         flags = simplegui.Frame._pygame_mode_flags
         enable = pygame.FULLSCREEN | pygame.HWSURFACE
@@ -217,89 +184,21 @@ class Window(object):
     def _get_window_size(size: Tuple[int, int], fullscreen: bool) -> Tuple[int, int]:
         """
         Returns the appropriate window size.
-        :param size: (int, int)
-        :param fullscreen: bool
-        :return: (int, int)
         """
-        width, height = size[0], size[1]
-        if not PYGAME_HACKS:
-            if width == -1 or height == -1:
-                width, height = WINDOW_SIZE2
-            return int(round(width)), int(round(height))
+        width = size[0]
+        height = size[1]
 
         if fullscreen:
             # fullscreen should be truly fullscreen
             info = pygame.display.Info()
-            width, height = info.current_w, info.current_h
-        elif width == -1 or height == -1:
-            # if either width or height are -1 use a ratio of the monitor dimensions
-            info = pygame.display.Info()
-            width, height = info.current_w, info.current_h
+            width = info.current_w
+            height = info.current_h
 
-            width *= 0.66
-            height *= 0.66
+        width *= HIDPI_FACTOR
+        height *= HIDPI_FACTOR
 
         # width and height should be ints
         return int(round(width)), int(round(height))
-
-
-class WindowHandler(object):
-    """
-    A WindowHandler handles the rendering of the window and receives all events.
-    """
-
-    def __init__(self, window: Window):
-        """
-        Creates a window handler.
-
-        :param window: Window
-        """
-        self.window = window
-
-    def render(self, canvas: simplegui.Canvas):
-        """
-        Called by the window draw handler every game tick.
-
-        :param canvas: Canvas
-        :return: None
-        """
-        pass
-
-    def on_click(self, pos: Tuple[int, int]):
-        """
-        Called whenever the window receives a mouse click event.
-
-        :param pos: (int, int)
-        :return: None
-        """
-        pass
-
-    def on_drag(self, pos: Tuple[int, int]):
-        """
-        Called whenever the window receives a mouse drag event.
-
-        :param pos: (int, int)
-        :return: None
-        """
-        pass
-
-    def on_key_down(self, key: Key):
-        """
-        Called whenever the window receives a key down event.
-
-        :param key: int
-        :return: None
-        """
-        pass
-
-    def on_key_up(self, key: Key):
-        """
-        Called whenever the window receives a key up event.
-
-        :param key: int
-        :return: None
-        """
-        pass
 
 
 class Renderable(object):
@@ -307,11 +206,111 @@ class Renderable(object):
     A renderable object to be drawn on the canvas.
     """
 
+    def __init__(self, window: Window):
+        self.window = window
+        self.parent: 'Renderable' = None
+
     def render(self, canvas: simplegui.Canvas):
         """
         Called to render the object.
+        """
+        pass
 
-        :param canvas: Canvas
-        :return: None
+    def get_bounds(self) -> Polygon:
+        """
+        The bounds of the rendered object.
+        Used to handle click events.
+        """
+        raise NotImplementedError
+
+    def is_mouse_over(self) -> bool:
+        """
+        Returns `true` if the mouse is over the object.
+        """
+        return self.get_bounds().is_inside(self.window.get_cursor_pos())
+
+    def on_click(self, pos: Vector):
+        """
+        Called when object receives a click event.
+        """
+        pass
+
+
+class RenderableParent(Renderable):
+    """
+    A renderable object to be drawn on the canvas, that can have children.
+    """
+
+    def __init__(self, window: Window):
+        super().__init__(window)
+        self.children: List[Renderable] = []
+
+    def render(self, canvas: simplegui.Canvas):
+        """
+        Called to render the object and render it's children.
+        """
+        for child in self.children:
+            child.render(canvas)
+
+    def get_bounds(self) -> Polygon:
+        raise NotImplementedError
+
+    def on_click(self, pos: Vector):
+        """
+        Called when object receives a click event.
+        Also checks and passes event to children.
+        """
+        for child in self.children:
+            if child.get_bounds().is_inside(pos):
+                child.on_click(pos)
+
+
+class WindowHandler(RenderableParent):
+    """
+    A WindowHandler handles the rendering of the window and receives all events.
+    """
+
+    def __init__(self, window: Window):
+        """
+        Creates a window handler.
+        """
+        super().__init__(window)
+
+    def render(self, canvas: simplegui.Canvas):
+        """
+        Called by the window draw handler every game tick.
+        """
+        super().render(canvas)
+
+    def get_bounds(self) -> Polygon:
+        size = self.window.get_size()
+        return Polygon(
+            Vector(0, 0),
+            Vector(size[0], 0),
+            Vector(size[0], size[1]),
+            Vector(0, size[1]),
+        )
+
+    def on_click(self, pos: Vector):
+        """
+        Called whenever the window receives a mouse click event.
+        """
+        super().on_click(pos)
+
+    def on_drag(self, pos: Vector):
+        """
+        Called whenever the window receives a mouse drag event.
+        """
+        pass
+
+    def on_key_down(self, key: Key):
+        """
+        Called whenever the window receives a key down event.
+        """
+        pass
+
+    def on_key_up(self, key: Key):
+        """
+        Called whenever the window receives a key up event.
         """
         pass
