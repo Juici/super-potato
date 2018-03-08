@@ -1,7 +1,7 @@
 import math
 import numbers
 
-from typing import Any
+from typing import Any, Tuple, List
 
 
 class Vector(object):
@@ -258,3 +258,11 @@ class Vector(object):
         Returns the number of components in the vector.
         """
         return 2
+
+    # Into
+
+    def into_tuple(self) -> Tuple[float, float]:
+        return float(self.x), float(self.y)
+
+    def into_list(self) -> List[float, float]:
+        return [float(self.x), float(self.y)]
