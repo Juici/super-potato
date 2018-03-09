@@ -32,4 +32,4 @@ class Level(WindowHandler):
 
     def on_key_up(self, key: Key):
         if (self.character):
-            self.character.on_key_down(key)
+            self.character.on_key_up(key)
