@@ -264,5 +264,5 @@ class Vector(object):
     def into_tuple(self) -> Tuple[float, float]:
         return float(self.x), float(self.y)
 
-    def into_list(self) -> List[float, float]:
+    def into_list(self) -> List:
         return [float(self.x), float(self.y)]
