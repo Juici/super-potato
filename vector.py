@@ -266,3 +266,11 @@ class Vector(object):
 
     def into_list(self) -> List:
         return [float(self.x), float(self.y)]
+
+    # From
+
+    def from_tuple(self, tuple: Tuple[float, float]):
+        return Vector(tuple[0], tuple[1])
+
+    def from_list(self, list: List):
+        return Vector(list[0], list[1])
