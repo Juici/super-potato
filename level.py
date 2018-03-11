@@ -21,9 +21,8 @@ class Level(WindowHandler):
         self.character = character
 
     def render(self, canvas: simplegui.Canvas):
-        #Vector: direction = self.character.get_desired_movement()
         for rend in self.renderables:
-            rend.render()
+            rend.render(canvas, self.renderables)
         self.character.render(canvas, self.renderables)
 
     def on_key_down(self, key: Key):
