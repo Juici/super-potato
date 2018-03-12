@@ -1,18 +1,28 @@
-from util import simplegui, Color, Box
+from util import Polygon, Color, Box
+from modules import simplegui
 from constants import *
 from vector import Vector
 from window import Renderable, Window
 from typing import Tuple
-#from sprite import Sprite
+
 
 class GenericSquare(Renderable):
 
-    def __init__(self, position: Vector, size: Vector, color: Color, window: Window, level: 'Level'):
+    def __init__(self, window: Window, position: Vector, size: Vector, color: Color):
+        super().__init__(window)
+
         self.position = position
         self.size = size
         self.color = color
         self.bounding_box = Box(self)
-        self.level = level
+
+    def get_bounds(self) -> Polygon:
+        return Polygon(
+            self.position,
+            self.position + (self.size.x, 0),
+            self.position + self.size,
+            self.position + (0, self.size.y),
+        )
 
     def get_pos(self) -> Vector:
         return self.position
@@ -30,114 +40,149 @@ class GenericSquare(Renderable):
     def get_bounding_box(self):
         return self.bounding_box
 
+
 class Trap(GenericSquare):
 
-    def __init__(self, position: Vector, size: Vector, color: Color, window: Window, level: 'Level'):
-        super().__init__(position, size, color, window, level)
-        level.add_trap(self)
+    def __init__(self, window: Window, position: Vector, size: Vector, color: Color):
+        super().__init__(window, position, size, color)
 
     def render(self, canvas: simplegui.Canvas):
         super().update_positions()
-        canvas.draw_polygon(self.bounding_box.get_render_vertices(), 1, str(self.color), str(self.color))
+        canvas.draw_polygon(self.bounding_box.get_render_vertices(), 1, str(self.color),
+                            str(self.color))
+
 
 class Finish(GenericSquare):
 
-    def __init__(self, position: Vector, size: Vector, color: Color, window: Window, level: 'Level'):
-        super().__init__(position, size, color, window, level)
-        level.set_finish(self)
+    def __init__(self, window: Window, position: Vector, size: Vector, color: Color):
+        super().__init__(window, position, size, color)
 
     def render(self, canvas: simplegui.Canvas):
         super().update_positions()
-        canvas.draw_polygon(self.bounding_box.get_render_vertices(), 1, str(self.color), str(self.color))
+        canvas.draw_polygon(self.bounding_box.get_render_vertices(), 1, str(self.color),
+                            str(self.color))
+
 
 class Platform(GenericSquare):
 
-    def __init__(self, position: Vector, size: Vector, color: Color, window: Window, level: 'Level'):
-        super().__init__(position, size, color, window, level)
-        level.add_platform(self)
+    def __init__(self, window: Window, position: Vector, size: Vector, color: Color):
+        super().__init__(window, position, size, color)
 
     def render(self, canvas: simplegui.Canvas):
         super().update_positions()
         canvas.draw_polygon(self.bounding_box.get_render_vertices(), 1, str(self.color))
 
+
 class Character(Renderable):
 
-    def __init__(self, position: Vector, size: Vector, window: Window, level: 'Level'):
-        
-        self.current_position = position
-        self.window_size = window.get_size()
+    def __init__(self, window: Window, initial_pos: Vector, size: Vector):
+        super().__init__(window)
+
+        self.current_position = initial_pos
         self.size = size
         self.target_move_x = 0
         self.target_move_y = 0
-        self.force_down_y = 0 # Keep 0 on ground collision, else set to 1 and multiply by 2 each frame
+        self.force_down_y = 0
         self.on_ground = False
         self.jumping = False
-        self.level = level
-        self.render_offset = -Vector(self.size.x / 2, self.size.y)
+        self.offset = Vector(-size.x / 2, -size.y)
         self.bounding_box = Box(self)
-        level.set_character(self)
+
+    def get_bounds(self) -> Polygon:
+        pos = self.current_position
+        size = self.size
+        return Polygon(
+            Vector(pos.x, pos.y),
+            Vector(pos.x + size.x, pos.y),
+            Vector(pos.x + size.x, pos.y + size.y),
+            Vector(pos.x, pos.y + size.y)
+        )
+
+    def on_key_down(self, key: Key):
+        if key == Key.SPACE:
+            self.jumping = True
+        elif key == Key.KEY_A:
+            self.target_move_x -= 1
+        elif key == Key.KEY_D:
+            self.target_move_x += 1
+
+    def on_key_up(self, key: Key):
+        if key == Key.SPACE:
+            self.jumping = False
+        elif key == Key.KEY_A:
+            self.target_move_x += 1
+        elif key == Key.KEY_D:
+            self.target_move_x -= 1
 
     def get_pos(self) -> Vector:
-        return self.current_position + self.render_offset
+        return self.current_position
 
     def get_size(self) -> Vector:
         return self.size
 
     def get_next_pos(self) -> Vector:
-        return self.current_position + Vector(self.target_move_x * PLAYER_MOVEMENT_SCALAR - LEVEL_X_PUSH, self.force_down_y)
+        return self.current_position + Vector(
+            self.target_move_x * PLAYER_MOVEMENT_SCALAR - LEVEL_X_PUSH, self.force_down_y)
 
-    def on_key_down(self, key: Key):
-        if (key == Key.SPACE):
-            self.jumping = True
-        if (key == Key.KEY_A):
-            self.target_move_x -= 1
-        elif (key == Key.KEY_D):
-            self.target_move_x += 1
+    def get_vertices(self) -> Tuple:
+        initial_pos = (self.current_position + self.offset)
+        return (
+            initial_pos.into_tuple(),
+            (initial_pos + Vector(self.size.x, 0)).into_tuple(),
+            (initial_pos + Vector(self.size.x, self.size.y)).into_tuple(),
+            (initial_pos + Vector(0, self.size.y)).into_tuple()
+        )
 
-    def on_key_up(self, key: Key):
-        if (key == Key.SPACE):
-            self.jumping = False
-        if (key == Key.KEY_A):
-            self.target_move_x += 1
-        elif (key == Key.KEY_D):
-            self.target_move_x -= 1
+    def die(self):
+        self.parent.children.remove(self)
 
-    def get_bounding_box(self):
-        return self.bounding_box
+    def progress(self):
+        self.parent.win()
 
     def render(self, canvas: simplegui.Canvas):
         target_position = self.get_next_pos()
-        window_size = self.window_size
-        bounding_box = self.bounding_box
-        bounding_box.update_box()
+        window_size = self.window.get_size()
+        self.bounding_box.update_box()
 
-        # Check if next position will be in the window's width bounds and rectify if not
-        if target_position.x > window_size[0]:
-            target_position.x = window_size[0]
-        elif target_position.x < 0:
-            target_position.x = 0
+        # Check if next position will be in the correct width bounds and rectify if not
+        if target_position.x > window_size[0] / 2:
+            target_position.x = window_size[0] / 2
+        elif target_position.x - self.size.x < 0:
+            # TODO: death
+            self.die()
 
         # Store any renderable the character is colliding with
         colliding_with = None
 
-        # Platform collision
-        for renderable in self.level.platforms:
-            renderable_pos = renderable.get_next_pos()
-            # If character is on the same x bounds
-            if self.current_position.x >= renderable_pos.x and self.current_position.x <= renderable_pos.x + renderable.get_size().x:
-                # If character is about to either drop lower or continue to drop
-                if (renderable_pos.y - target_position.y) <= 0:
-                    # If character has just passed through
-                    if (renderable_pos.y - self.current_position.y) > 0:
-                        colliding_with = renderable
-                        target_position.y = renderable_pos.y - 0.1
-                        self.on_ground = True
-                        self.force_down_y = 0
-                        break
+        for r in self.parent.children:
+            if isinstance(r, Platform):
+                r_pos = r.get_next_pos()
 
-        if colliding_with == None:
-            # If not colliding with any object, check window collision
-            if target_position.y <= window_size[1] and target_position.y >= 0:
+                # If character is on the same x bounds
+                if r_pos.x <= self.current_position.x <= r_pos.x + r.get_size().x:
+                    # If character is about to either drop lower or continue to drop
+                    if (r_pos.y - target_position.y) <= 0:
+                        # If character has just passed through
+                        if (r_pos.y - self.current_position.y) > 0:
+                            colliding_with = r
+                            target_position.y = r_pos.y - 0.1
+                            self.on_ground = True
+                            self.force_down_y = 0
+                            break
+            elif isinstance(r, Trap):
+                if (r.get_bounding_box().collides(self.bounding_box)):
+                    colliding_with = r
+                    self.die()
+                    break
+            elif isinstance(r, Finish):
+                if (r.get_bounding_box().collides(self.bounding_box)):
+                    colliding_with = r
+                    self.progress()
+                    break
+
+        if colliding_with is None:
+            # If not colliding with any object, check window height collision
+            if 0 <= target_position.y <= window_size[1]:
                 self.on_ground = False
                 self.force_down_y += PLAYER_GRAVITY
             else:
@@ -149,4 +194,4 @@ class Character(Renderable):
             self.force_down_y = -PLAYER_JUMP_FORCE
 
         self.current_position = target_position
-        canvas.draw_polygon(bounding_box.get_render_vertices(), 1, "Red", "Red")
+        canvas.draw_polygon(self.get_vertices(), 1, "Red", "Red")

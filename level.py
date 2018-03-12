@@ -1,74 +1,25 @@
-from util import simplegui
-from pygame import time
+from modules import simplegui
 from constants import *
-from window import Window, Renderable, WindowHandler
 from vector import Vector
-from level_items import *
-from math import *
+from window import Window, WindowHandler
+from level_items import Character, Platform, Trap, Finish
 
-class Level(WindowHandler):
+
+class GameView(WindowHandler):
     """
     A game level.
     """
 
-    def __init__(self, window: Window):
+    def __init__(self, window: Window, next_level: 'Level'):
         super().__init__(window)
-        self.renderables = []
-        self.platforms = []
-        self.traps = []
-        self.character = None
-        self.window_size = window.get_size()
+        self.next_level = next_level
+        self.window = window
         self.offset = 0
-        self.complete_status = 0
 
-    def add_platform(self, item: Platform):
-        self.platforms.append(item)
-        self.renderables.append(item)
-
-    def add_trap(self, item: Trap):
-        self.traps.append(item)
-        self.renderables.append(item)
-
-    def set_character(self, character: Renderable):
-        self.character = character
-
-    def set_finish(self, finish: Renderable):
-        self.finish = finish
-
-    def onto_next_level(self):
-        pass
-        
-    def restart_level(self):
-        pass
+    def win(self):
+        self.window.handler = self.next_level
 
     def render(self, canvas: simplegui.Canvas):
-        char = self.character
-        for rend in self.renderables:
-            rend.render(canvas)
-        char.render(canvas)
-        self.finish.render(canvas)
-        char_pos = char.get_pos()
+        super().render(canvas)
+
         self.offset += LEVEL_X_PUSH
-
-        level_status = 0
-
-        for trap in self.traps:
-            if trap.get_bounding_box().intersects_with(char.get_bounding_box()):
-                level_status = 1
-                break
-
-        if char_pos.x == 0 or char_pos.y == self.window_size[1]:
-            level_status = 1
-
-        if level_status == 2:
-            self.onto_next_level()
-        else:
-            self.restart_level()
-
-    def on_key_down(self, key: Key):
-        if (self.character):
-            self.character.on_key_down(key)
-
-    def on_key_up(self, key: Key):
-        if (self.character):
-            self.character.on_key_up(key)

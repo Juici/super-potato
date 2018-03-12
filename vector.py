@@ -33,6 +33,18 @@ class Vector(object):
 
         return self
 
+    def _add_indexable(self, other) -> 'Vector':
+        """
+        Add a vector to this vector, returns this instance.
+        """
+        assert isinstance(other[0], numbers.Real)
+        assert isinstance(other[1], numbers.Real)
+
+        self.x += other[0]
+        self.y += other[1]
+
+        return self
+
     def _add_scalar(self, k: numbers.Real) -> 'Vector':
         """
         Add a scalar to this vector, and return this instance.
@@ -50,8 +62,11 @@ class Vector(object):
         """
         try:
             self._add_vec(other)
-        except AssertionError:
-            self._add_scalar(other)
+        except (AttributeError, AssertionError):
+            try:
+                self._add_indexable(other)
+            except (IndexError, TypeError, AssertionError):
+                self._add_scalar(other)
 
         return self
 
@@ -238,10 +253,11 @@ class Vector(object):
         Returns an indexed item in the vector.
         """
         if index == 0:
-            return self.x
-        if index == 1:
-            return self.y
-        raise IndexError
+            return float(self.x)
+        elif index == 1:
+            return float(self.y)
+        else:
+            raise IndexError
 
     def __setitem__(self, index: int, value: numbers.Real):
         """
@@ -249,9 +265,10 @@ class Vector(object):
         """
         if index == 0:
             self.x = value
-        if index == 1:
+        elif index == 1:
             self.y = value
-        raise IndexError
+        else:
+            raise IndexError
 
     def __len__(self) -> int:
         """
@@ -262,15 +279,36 @@ class Vector(object):
     # Into
 
     def into_tuple(self) -> Tuple[float, float]:
+        """
+        Returns this vector as a tuple.
+        """
         return float(self.x), float(self.y)
 
     def into_list(self) -> List:
+        """
+        Returns this vector as a list.
+        """
         return [float(self.x), float(self.y)]
 
     # From
 
-    def from_tuple(self, tuple: Tuple[float, float]):
-        return Vector(tuple[0], tuple[1])
+    @staticmethod
+    def new(*args, **kwargs) -> 'Vector':
+        """
+        Creates a vector from the given arguments.
+        """
+        try:
+            x, y = args[0].x, args[0].y
+        except (AttributeError, IndexError, TypeError):
+            try:
+                x, y = args[0][0], args[0][1]
+            except (IndexError, TypeError):
+                try:
+                    x, y = args[0], args[1]
+                    assert isinstance(x, numbers.Real) and isinstance(y, numbers.Real)
+                except (IndexError, TypeError, AssertionError):
+                    x = kwargs.get('x', 0)
+                    y = kwargs.get('y', 0)
 
-    def from_list(self, list: List):
-        return Vector(list[0], list[1])
+        assert isinstance(x, numbers.Real) and isinstance(y, numbers.Real)
+        return Vector(x, y)

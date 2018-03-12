@@ -1,6 +1,18 @@
 from modules import pygame, simplegui
 from vector import Vector
 
+
+def load_image(path: str) -> simplegui.Image:
+    """
+    Loads an image from the path.
+    """
+    if path.startswith('http'):
+        return simplegui.load_image(path)
+    else:
+        # noinspection PyProtectedMember
+        return simplegui._load_local_image(path)
+
+
 class Box(object):
 
     def update_position(self):
@@ -9,7 +21,8 @@ class Box(object):
         self.vertices_world_space = tuple((position + value).into_tuple() for value in object_space)
 
     def get_render_vertices(self, offset: Vector = Vector(0, 0)):
-        return tuple((value[0] + offset.x, value[1] + offset.y) for value in self.vertices_world_space)
+        return tuple(
+            (value[0] + offset.x, value[1] + offset.y) for value in self.vertices_world_space)
 
     def update_size(self):
         size = self.obj.get_size()
@@ -30,15 +43,18 @@ class Box(object):
         close_corner = self.get_close_corner()
         far_corner = self.get_far_corner()
         return (
-            position[0] >= close_corner[0] and position[0] <= far_corner[0] and
-            position[1] >= close_corner[1] and position[1] <= far_corner[1]
+                position[0] >= close_corner[0] and position[0] <= far_corner[0] and
+                position[1] >= close_corner[1] and position[1] <= far_corner[1]
         )
 
-    def intersects_with(self, other: 'Box'):
+    def is_within_or_equal_to(self, other: 'Box'):
         for point in other.vertices_world_space:
             if self.is_colliding_point(point):
                 return True
         return False
+
+    def collides(self, other: 'Box'):
+        return self.is_within_or_equal_to(other) or other.is_within_or_equal_to(self)
 
     def update_box(self):
         self.update_size()
@@ -47,6 +63,7 @@ class Box(object):
     def __init__(self, obj: 'Renderable'):
         self.obj = obj
         self.update_box()
+
 
 class Color(object):
 
@@ -82,19 +99,29 @@ class Color(object):
 
 class Font(object):
 
-    def __init__(self, face: str, size: int):
+    def __init__(self, face: str, size: int, hidpi_factor: float = 1.0):
         self.face = face
         self.size = size
+        self.hidpi_factor = hidpi_factor
+
+    def get_face(self):
+        return self.face
+
+    def get_size(self):
+        return self.size * self.hidpi_factor
+
+    def get_raw_size(self):
+        return self.size
 
     # noinspection PyProtectedMember
-    def get_text_bounds(self, text: str, hidpi_factor: float = 1.0) -> Vector:
+    def get_text_bounds(self, text: str) -> Vector:
         """
         Returns to bounds of the text in this font.
         """
         font_name = self.face
         if self.face in simplegui._SIMPLEGUIFONTFACE_TO_PYGAMEFONTNAME:
             font_name = simplegui._SIMPLEGUIFONTFACE_TO_PYGAMEFONTNAME[font_name]
-        bounds = pygame.font.SysFont(font_name, int(self.size * hidpi_factor)).size(text)
+        bounds = pygame.font.SysFont(font_name, int(self.size * self.hidpi_factor)).size(text)
         return Vector(bounds[0], bounds[1])
 
 
@@ -118,7 +145,7 @@ class Polygon(object):
     def __len__(self):
         return len(self.points)
 
-    def is_inside(self, p: Vector) -> bool:
+    def contains(self, p: Vector) -> bool:
         """
         Returns `true` if the vector `p` is inside the polygon.
         """
