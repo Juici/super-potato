@@ -115,7 +115,7 @@ class Character(Renderable):
             self.target_move_x -= 1
 
     def get_pos(self) -> Vector:
-        return self.current_position
+        return self.current_position + self.offset
 
     def get_size(self) -> Vector:
         return self.size
