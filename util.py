@@ -1,6 +1,18 @@
 from modules import pygame, simplegui
 from vector import Vector
 
+
+def load_image(path: str) -> simplegui.Image:
+    """
+    Loads an image from the path.
+    """
+    if path.startswith('http'):
+        return simplegui.load_image(path)
+    else:
+        # noinspection PyProtectedMember
+        return simplegui._load_local_image(path)
+
+
 class Color(object):
 
     def __init__(self, r: int, g: int, b: int):
@@ -35,19 +47,29 @@ class Color(object):
 
 class Font(object):
 
-    def __init__(self, face: str, size: int):
+    def __init__(self, face: str, size: int, hidpi_factor: float = 1.0):
         self.face = face
         self.size = size
+        self.hidpi_factor = hidpi_factor
+
+    def get_face(self):
+        return self.face
+
+    def get_size(self):
+        return self.size * self.hidpi_factor
+
+    def get_raw_size(self):
+        return self.size
 
     # noinspection PyProtectedMember
-    def get_text_bounds(self, text: str, hidpi_factor: float = 1.0) -> Vector:
+    def get_text_bounds(self, text: str) -> Vector:
         """
         Returns to bounds of the text in this font.
         """
         font_name = self.face
         if self.face in simplegui._SIMPLEGUIFONTFACE_TO_PYGAMEFONTNAME:
             font_name = simplegui._SIMPLEGUIFONTFACE_TO_PYGAMEFONTNAME[font_name]
-        bounds = pygame.font.SysFont(font_name, int(self.size * hidpi_factor)).size(text)
+        bounds = pygame.font.SysFont(font_name, int(self.size * self.hidpi_factor)).size(text)
         return Vector(bounds[0], bounds[1])
 
 
