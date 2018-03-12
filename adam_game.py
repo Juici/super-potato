@@ -61,9 +61,6 @@ def main():
     window.handler = level_one
     window.show()
 
-    # Wait for user to lose or hit finish line
-    #
-
 
 # Check we are running and not importing.
 if __name__ == '__main__':
