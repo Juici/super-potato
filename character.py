@@ -3,6 +3,7 @@ from constants import *
 from vector import Vector
 from window import Renderable, Window
 from level import Level
+from typing import Tuple
 #from sprite import Sprite
 
 class Character(Renderable):
@@ -17,6 +18,7 @@ class Character(Renderable):
         self.on_ground = False
         self.jumping = False
         self.level = level
+        self.offset = Vector(-size.x / 2, -size.y)
         level.set_character(self)
 
     def on_key_down(self, key: Key):
@@ -43,6 +45,15 @@ class Character(Renderable):
 
     def get_next_pos(self) -> Vector:
         return self.current_position + Vector(self.target_move_x * PLAYER_MOVEMENT_SCALAR, self.force_down_y)
+
+    def get_vertices(self) -> Tuple:
+        initial_pos = (self.current_position + self.offset)
+        return (
+            initial_pos.into_tuple(),
+            (initial_pos + Vector(self.size.x, 0)).into_tuple(),
+            (initial_pos + Vector(self.size.x, self.size.y)).into_tuple(),
+            (initial_pos + Vector(0, self.size.y)).into_tuple()
+        )
 
     def render(self, canvas: simplegui.Canvas, renderables: Renderable):
         target_position = self.get_next_pos()
@@ -85,4 +96,4 @@ class Character(Renderable):
             self.force_down_y = -PLAYER_JUMP_FORCE
 
         self.current_position = target_position
-        canvas.draw_text("C", self.current_position.into_tuple(), 30, "Red")
+        canvas.draw_polygon(self.get_vertices(), 1, "Red", "Red")
