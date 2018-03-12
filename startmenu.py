@@ -1,6 +1,7 @@
 from modules import simplegui
 from vector import Vector
 from window import Window, WindowHandler
+<<<<<<< HEAD
 from util import Font, Color
 from button import Button
 from constants import *

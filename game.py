@@ -10,6 +10,7 @@ def main():
 
     window = Window(GAME_NAME, WINDOW_SIZE, fullscreen=FULLSCREEN)
     window.handler = StartMenu(window)
+
     window.show()
 
 
