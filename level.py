@@ -12,7 +12,7 @@ class Level(WindowHandler):
         super().__init__(window)
         self.renderables = []
         self.character = None
-        self.parallax_offset_x = 0
+        self.offset = 0
 
     def add_renderable(self, item: Renderable):
         self.renderables.append(item)
@@ -24,6 +24,7 @@ class Level(WindowHandler):
         for rend in self.renderables:
             rend.render(canvas, self.renderables)
         self.character.render(canvas, self.renderables)
+        self.offset += LEVEL_X_PUSH
 
     def on_key_down(self, key: Key):
         if (self.character):
