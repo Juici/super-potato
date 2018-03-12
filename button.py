@@ -1,16 +1,18 @@
 from typing import Callable
 
+from constants import HIDPI_FACTOR
 from modules import pygame, simplegui
 from util import Color, Font, Polygon
 from vector import Vector
 from window import Renderable, Window
+
 
 class Button(Renderable):
 
     def __init__(self, window: Window, text: str, pos: Vector, size: Vector = Vector(150, 50),
                  bg: Color = Color(200, 200, 200), fg: Color = Color(20, 20, 20),
                  bg_over: Color = Color(220, 220, 220), fg_over: Color = Color(20, 20, 20),
-                 border_size: int = 0, font: Font = Font('sans-serif', 15)):
+                 border_size: int = 0, font: Font = Font('sans-serif', 15, HIDPI_FACTOR)):
         super().__init__(window)
         self._click_handler = None
 
@@ -49,7 +51,7 @@ class Button(Renderable):
         mouse = pygame.mouse.get_pos()
         mouse = Vector(mouse[0], mouse[1])
 
-        if self.get_bounds().is_inside(mouse):
+        if self.get_bounds().contains(mouse):
             fg = self.fg_over
             bg = self.bg_over
         else:
@@ -66,7 +68,7 @@ class Button(Renderable):
             self.center[1] + font_bounds.y / 4,
         )
 
-        canvas.draw_text(self.text, text_pos, self.font.size, str(fg), self.font.face)
+        canvas.draw_text(self.text, text_pos, self.font.get_size(), str(fg), self.font.get_face())
 
     def on_click(self, pos: Vector):
         if self._click_handler is not None:
