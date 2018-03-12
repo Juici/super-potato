@@ -2,7 +2,7 @@ from modules import simplegui
 from constants import *
 from vector import Vector
 from window import Window, WindowHandler
-from character import Character
+from level_items import Character
 
 
 class GameView(WindowHandler):

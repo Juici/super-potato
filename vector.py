@@ -33,6 +33,18 @@ class Vector(object):
 
         return self
 
+    def _add_indexable(self, other) -> 'Vector':
+        """
+        Add a vector to this vector, returns this instance.
+        """
+        assert isinstance(other[0], numbers.Real)
+        assert isinstance(other[1], numbers.Real)
+
+        self.x += other[0]
+        self.y += other[1]
+
+        return self
+
     def _add_scalar(self, k: numbers.Real) -> 'Vector':
         """
         Add a scalar to this vector, and return this instance.
@@ -50,8 +62,11 @@ class Vector(object):
         """
         try:
             self._add_vec(other)
-        except AssertionError:
-            self._add_scalar(other)
+        except (AttributeError, AssertionError):
+            try:
+                self._add_indexable(other)
+            except (IndexError, TypeError, AssertionError):
+                self._add_scalar(other)
 
         return self
 
