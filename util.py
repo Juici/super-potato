@@ -1,7 +1,6 @@
 from modules import pygame, simplegui
 from vector import Vector
 
-
 class Color(object):
 
     def __init__(self, r: int, g: int, b: int):
