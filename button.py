@@ -5,7 +5,6 @@ from util import Color, Font, Polygon
 from vector import Vector
 from window import Renderable, Window
 
-
 class Button(Renderable):
 
     def __init__(self, window: Window, text: str, pos: Vector, size: Vector = Vector(150, 50),

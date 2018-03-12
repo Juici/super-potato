@@ -1,6 +1,53 @@
 from modules import pygame, simplegui
 from vector import Vector
 
+class Box(object):
+
+    def update_position(self):
+        position = self.obj.get_pos()
+        object_space = self.vertices_object_space
+        self.vertices_world_space = tuple((position + value).into_tuple() for value in object_space)
+
+    def get_render_vertices(self, offset: Vector = Vector(0, 0)):
+        return tuple((value[0] + offset.x, value[1] + offset.y) for value in self.vertices_world_space)
+
+    def update_size(self):
+        size = self.obj.get_size()
+        self.vertices_object_space = (
+            Vector(0, 0),
+            Vector(size.x, 0),
+            Vector(size.x, size.y),
+            Vector(0, size.y)
+        )
+
+    def get_close_corner(self):
+        return self.vertices_world_space[0]
+
+    def get_far_corner(self):
+        return self.vertices_world_space[2]
+
+    def is_colliding_point(self, position: Vector):
+        close_corner = self.get_close_corner()
+        far_corner = self.get_far_corner()
+        return (
+            position[0] >= close_corner[0] and position[0] <= far_corner[0] and
+            position[1] >= close_corner[1] and position[1] <= far_corner[1]
+        )
+
+    def intersects_with(self, other: 'Box'):
+        for point in other.vertices_world_space:
+            if self.is_colliding_point(point):
+                return True
+        return False
+
+    def update_box(self):
+        self.update_size()
+        self.update_position()
+
+    def __init__(self, obj: 'Renderable'):
+        self.obj = obj
+        self.update_box()
+
 class Color(object):
 
     def __init__(self, r: int, g: int, b: int):

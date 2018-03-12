@@ -1,14 +1,69 @@
-from util import simplegui
+from util import simplegui, Color, Box
 from constants import *
 from vector import Vector
 from window import Renderable, Window
-from level import Level
 from typing import Tuple
 #from sprite import Sprite
 
+class GenericSquare(Renderable):
+
+    def __init__(self, position: Vector, size: Vector, color: Color, window: Window, level: 'Level'):
+        self.position = position
+        self.size = size
+        self.color = color
+        self.bounding_box = Box(self)
+        self.level = level
+
+    def get_pos(self) -> Vector:
+        return self.position
+
+    def get_size(self) -> Vector:
+        return self.size
+
+    def get_next_pos(self) -> Vector:
+        return self.position
+
+    def update_positions(self):
+        self.position -= Vector(LEVEL_X_PUSH, 0)
+        self.bounding_box.update_box()
+
+    def get_bounding_box(self):
+        return self.bounding_box
+
+class Trap(GenericSquare):
+
+    def __init__(self, position: Vector, size: Vector, color: Color, window: Window, level: 'Level'):
+        super().__init__(position, size, color, window, level)
+        level.add_trap(self)
+
+    def render(self, canvas: simplegui.Canvas):
+        super().update_positions()
+        canvas.draw_polygon(self.bounding_box.get_render_vertices(), 1, str(self.color), str(self.color))
+
+class Finish(GenericSquare):
+
+    def __init__(self, position: Vector, size: Vector, color: Color, window: Window, level: 'Level'):
+        super().__init__(position, size, color, window, level)
+        level.set_finish(self)
+
+    def render(self, canvas: simplegui.Canvas):
+        super().update_positions()
+        canvas.draw_polygon(self.bounding_box.get_render_vertices(), 1, str(self.color), str(self.color))
+
+class Platform(GenericSquare):
+
+    def __init__(self, position: Vector, size: Vector, color: Color, window: Window, level: 'Level'):
+        super().__init__(position, size, color, window, level)
+        level.add_platform(self)
+
+    def render(self, canvas: simplegui.Canvas):
+        super().update_positions()
+        canvas.draw_polygon(self.bounding_box.get_render_vertices(), 1, str(self.color))
+
 class Character(Renderable):
 
-    def __init__(self, position: Vector, size: Vector, window: Window, level: Level):
+    def __init__(self, position: Vector, size: Vector, window: Window, level: 'Level'):
+        
         self.current_position = position
         self.window_size = window.get_size()
         self.size = size
@@ -18,8 +73,18 @@ class Character(Renderable):
         self.on_ground = False
         self.jumping = False
         self.level = level
-        self.offset = Vector(-size.x / 2, -size.y)
+        self.render_offset = -Vector(self.size.x / 2, self.size.y)
+        self.bounding_box = Box(self)
         level.set_character(self)
+
+    def get_pos(self) -> Vector:
+        return self.current_position + self.render_offset
+
+    def get_size(self) -> Vector:
+        return self.size
+
+    def get_next_pos(self) -> Vector:
+        return self.current_position + Vector(self.target_move_x * PLAYER_MOVEMENT_SCALAR - LEVEL_X_PUSH, self.force_down_y)
 
     def on_key_down(self, key: Key):
         if (key == Key.SPACE):
@@ -37,27 +102,14 @@ class Character(Renderable):
         elif (key == Key.KEY_D):
             self.target_move_x -= 1
 
-    def get_pos(self) -> Vector:
-        return self.current_position
+    def get_bounding_box(self):
+        return self.bounding_box
 
-    def get_size(self) -> Vector:
-        return self.size
-
-    def get_next_pos(self) -> Vector:
-        return self.current_position + Vector(self.target_move_x * PLAYER_MOVEMENT_SCALAR - LEVEL_X_PUSH, self.force_down_y)
-
-    def get_vertices(self) -> Tuple:
-        initial_pos = (self.current_position + self.offset)
-        return (
-            initial_pos.into_tuple(),
-            (initial_pos + Vector(self.size.x, 0)).into_tuple(),
-            (initial_pos + Vector(self.size.x, self.size.y)).into_tuple(),
-            (initial_pos + Vector(0, self.size.y)).into_tuple()
-        )
-
-    def render(self, canvas: simplegui.Canvas, renderables: Renderable):
+    def render(self, canvas: simplegui.Canvas):
         target_position = self.get_next_pos()
         window_size = self.window_size
+        bounding_box = self.bounding_box
+        bounding_box.update_box()
 
         # Check if next position will be in the window's width bounds and rectify if not
         if target_position.x > window_size[0]:
@@ -68,7 +120,8 @@ class Character(Renderable):
         # Store any renderable the character is colliding with
         colliding_with = None
 
-        for renderable in self.level.renderables:
+        # Platform collision
+        for renderable in self.level.platforms:
             renderable_pos = renderable.get_next_pos()
             # If character is on the same x bounds
             if self.current_position.x >= renderable_pos.x and self.current_position.x <= renderable_pos.x + renderable.get_size().x:
@@ -96,4 +149,4 @@ class Character(Renderable):
             self.force_down_y = -PLAYER_JUMP_FORCE
 
         self.current_position = target_position
-        canvas.draw_polygon(self.get_vertices(), 1, "Red", "Red")
+        canvas.draw_polygon(bounding_box.get_render_vertices(), 1, "Red", "Red")
