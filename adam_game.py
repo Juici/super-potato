@@ -6,7 +6,6 @@ from character import Character
 from block import Block
 from vector import Vector
 
-
 def main():
     """
     The main launch function.
