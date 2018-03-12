@@ -1,7 +1,6 @@
 from modules import simplegui
 from vector import Vector
 from window import Window, WindowHandler
-<<<<<<< HEAD
 from util import Font, Color
 from button import Button
 from constants import *
@@ -9,6 +8,8 @@ from levelone import LevelOne
 
 START_BUTTON_SIZE = Vector(200, 50)
 IMAGE_SIZE = Vector(1000, 300)
+
+bg_image = simplegui.load_image('https://d2v9y0dukr6mq2.cloudfront.net/video/thumbnail/0kjHIH6/old-retro-video-game-arcade-clouds-moving-on-a-blue-sky_hcd0pxim__F0000.png')
 
 class StartMenu(WindowHandler):
 
@@ -33,15 +34,16 @@ class StartMenu(WindowHandler):
         self.btns.append(btn1)
 
     def render(self, canvas: simplegui.Canvas):
+        canvas.draw_image(bg_image, (1920 / 2, 1080 / 2), (1920, 1080), (500, 300), WINDOW_SIZE)
         super().render(canvas)
         for btn in self.btns:
             btn.render(canvas)
 
-        self.background_pos_x += 1
-        if self.background_pos_x == IMAGE_SIZE.x:
-            self.background_pos_x = 0
+#        self.background_pos_x += 1
+#        if self.background_pos_x == IMAGE_SIZE.x:
+#            self.background_pos_x = 0
 
-        canvas.draw_image()
+
 
     def on_click(self, pos: Vector):
         super().on_click(pos)
