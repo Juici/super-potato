@@ -9,7 +9,6 @@ class Block(Renderable):
 
     def __init__(self, position: Vector, size: Vector, color: Color, window: Window, level: Level):
         self.position = position
-        self.last_position = position + Vector(1, 0)
         self.size = size
         self.color = color
         self.window_size = window.get_size()
@@ -28,10 +27,8 @@ class Block(Renderable):
         level.add_renderable(self)
 
     def update_vertices(self):
-        if self.position != self.last_position:
-            self.last_position = self.position
-            for index in range(4):
-                self.vertex_positions[index] = (self.vertices[index] + self.position).into_tuple()
+        for index in range(4):
+            self.vertex_positions[index] = (self.vertices[index] + self.position).into_tuple()
 
     def get_size(self) -> Vector:
         return self.size
@@ -42,3 +39,4 @@ class Block(Renderable):
     def render(self, canvas: simplegui.Canvas, renderables: Renderable):
         self.update_vertices()
         canvas.draw_polygon(self.vertex_positions, 1, str(self.color))
+        self.position -= Vector(LEVEL_X_PUSH, 0)
