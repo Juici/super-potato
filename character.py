@@ -44,7 +44,7 @@ class Character(Renderable):
         return self.size
 
     def get_next_pos(self) -> Vector:
-        return self.current_position + Vector(self.target_move_x * PLAYER_MOVEMENT_SCALAR, self.force_down_y)
+        return self.current_position + Vector(self.target_move_x * PLAYER_MOVEMENT_SCALAR - LEVEL_X_PUSH, self.force_down_y)
 
     def get_vertices(self) -> Tuple:
         initial_pos = (self.current_position + self.offset)
