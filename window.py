@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from constants import HIDPI_FACTOR, Key
+from constants import HIDPI_FACTOR
 from modules import pygame, simplegui
 from util import Polygon
 from vector import Vector
@@ -130,7 +130,7 @@ class Window(object):
         Passes the event to the handler.
         """
         if self.handler is not None:
-            self.handler.on_key_down(Key(key))
+            self.handler.on_key_down(key)
 
     def _on_key_up(self, key: int):
         """
@@ -138,12 +138,13 @@ class Window(object):
         Passes the event to the handler.
         """
         if self.handler is not None:
-            self.handler.on_key_up(Key(key))
+            self.handler.on_key_up(key)
 
     # Internal
 
     # noinspection PyProtectedMember
-    def _create_frame(self, title: str, width: int, height: int) -> simplegui.Frame:
+    @staticmethod
+    def _create_frame(title: str, width: int, height: int) -> simplegui.Frame:
         """
         Creates the window frame, magic included.
         """
@@ -266,7 +267,19 @@ class Renderable(object):
 
     def on_click(self, pos: Vector):
         """
-        Called when object receives a click event.
+        Called whenever renderable receives a click event.
+        """
+        pass
+
+    def on_key_down(self, key: int):
+        """
+        Called whenever renderable receives a key down event.
+        """
+        pass
+
+    def on_key_up(self, key: int):
+        """
+        Called whenever renderable receives a key up event.
         """
         pass
 
@@ -298,6 +311,19 @@ class RenderableParent(Renderable):
         for child in self.children:
             if child.get_bounds().is_inside(pos):
                 child.on_click(pos)
+
+    def on_key_down(self, key: int):
+        """
+        Called whenever the window receives a key down event.
+        """
+        for child in self.children:
+            child.on_key_down(key)
+
+    def on_key_up(self, key: int):
+        """
+        Called whenever the window receives a key up event.
+        """
+        pass
 
 
 class WindowHandler(RenderableParent):
@@ -335,17 +361,5 @@ class WindowHandler(RenderableParent):
     def on_drag(self, pos: Vector):
         """
         Called whenever the window receives a mouse drag event.
-        """
-        pass
-
-    def on_key_down(self, key: Key):
-        """
-        Called whenever the window receives a key down event.
-        """
-        pass
-
-    def on_key_up(self, key: Key):
-        """
-        Called whenever the window receives a key up event.
         """
         pass

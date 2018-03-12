@@ -284,14 +284,14 @@ class Vector(object):
         """
         try:
             x, y = args[0].x, args[0].y
-        except TypeError:
+        except (AttributeError, IndexError, TypeError):
             try:
                 x, y = args[0][0], args[0][1]
-            except TypeError:
+            except (IndexError, TypeError):
                 try:
                     x, y = args[0], args[1]
                     assert isinstance(x, numbers.Real) and isinstance(y, numbers.Real)
-                except (TypeError, AssertionError):
+                except (IndexError, TypeError, AssertionError):
                     x = kwargs.get('x', 0)
                     y = kwargs.get('y', 0)
 
