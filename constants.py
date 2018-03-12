@@ -24,11 +24,11 @@ FULLSCREEN = False  # Display fullscreen.
 
 HIDPI_FACTOR = _get_hidpi_factor()  # HiDPI screen scale factor.
 
-PLAYER_MOVEMENT_SCALAR = 3.0  # Side movement speed multiplier
-PLAYER_JUMP_FORCE = 8
-PLAYER_GRAVITY = 0.2
+PLAYER_MOVEMENT_SCALAR = 4.0 * HIDPI_FACTOR  # Side movement speed multiplier
+PLAYER_JUMP_FORCE = 12 * HIDPI_FACTOR
+PLAYER_GRAVITY = 0.4 * HIDPI_FACTOR
 
-LEVEL_X_PUSH = 1
+LEVEL_X_PUSH = 1 * HIDPI_FACTOR
 
 
 # Better than the basic simplegui key map.

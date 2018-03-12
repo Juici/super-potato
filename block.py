@@ -1,13 +1,14 @@
-from util import simplegui, Color
+from util import simplegui, Color, Polygon
 from constants import *
 from vector import Vector
 from window import Renderable, Window
-from level import Level
-#from sprite import Sprite
+
 
 class Block(Renderable):
 
-    def __init__(self, position: Vector, size: Vector, color: Color, window: Window, level: Level):
+    def __init__(self, window: Window, position: Vector, size: Vector, color: Color):
+        super().__init__(window)
+
         self.position = position
         self.size = size
         self.color = color
@@ -24,7 +25,9 @@ class Block(Renderable):
             (0, 0),
             (0, 0)
         ]
-        level.add_renderable(self)
+
+    def get_bounds(self) -> Polygon:
+        return Polygon(*self.vertices)
 
     def update_vertices(self):
         for index in range(4):
@@ -36,7 +39,8 @@ class Block(Renderable):
     def get_next_pos(self) -> Vector:
         return self.position
 
-    def render(self, canvas: simplegui.Canvas, renderables: Renderable):
+    def render(self, canvas: simplegui.Canvas):
         self.update_vertices()
-        canvas.draw_polygon(self.vertex_positions, 1, str(self.color))
         self.position -= Vector(LEVEL_X_PUSH, 0)
+
+        canvas.draw_polygon(self.vertex_positions, 1, str(self.color))

@@ -1,40 +1,49 @@
-from util import simplegui
+from block import Block
+from util import simplegui, Polygon
 from constants import *
 from vector import Vector
 from window import Renderable, Window
-from level import Level
 from typing import Tuple
-#from sprite import Sprite
+
 
 class Character(Renderable):
 
-    def __init__(self, position: Vector, size: Vector, window: Window, level: Level):
-        self.current_position = position
-        self.window_size = window.get_size()
+    def __init__(self, window: Window, initial_pos: Vector, size: Vector):
+        super().__init__(window)
+
+        self.current_position = initial_pos
         self.size = size
         self.target_move_x = 0
         self.target_move_y = 0
-        self.force_down_y = 0 # Keep 0 on ground collision, else set to 1 and multiply by 2 each frame
+        self.force_down_y = 0  # 0 on ground collision, set to 1 and multiply by 2 each frame
         self.on_ground = False
         self.jumping = False
-        self.level = level
         self.offset = Vector(-size.x / 2, -size.y)
-        level.set_character(self)
+
+    def get_bounds(self) -> Polygon:
+        pos = self.current_position
+        size = self.size
+        return Polygon(
+            Vector(pos.x, pos.y),
+            Vector(pos.x + size.x, pos.y),
+            Vector(pos.x + size.x, pos.y + size.y),
+            Vector(pos.x, pos.y + size.y)
+        )
 
     def on_key_down(self, key: Key):
-        if (key == Key.SPACE):
+        if key == Key.SPACE:
             self.jumping = True
-        if (key == Key.KEY_A):
+        elif key == Key.KEY_A:
             self.target_move_x -= 1
-        elif (key == Key.KEY_D):
+        elif key == Key.KEY_D:
             self.target_move_x += 1
 
     def on_key_up(self, key: Key):
-        if (key == Key.SPACE):
+        if key == Key.SPACE:
             self.jumping = False
-        if (key == Key.KEY_A):
+        elif key == Key.KEY_A:
             self.target_move_x += 1
-        elif (key == Key.KEY_D):
+        elif key == Key.KEY_D:
             self.target_move_x -= 1
 
     def get_pos(self) -> Vector:
@@ -44,7 +53,8 @@ class Character(Renderable):
         return self.size
 
     def get_next_pos(self) -> Vector:
-        return self.current_position + Vector(self.target_move_x * PLAYER_MOVEMENT_SCALAR - LEVEL_X_PUSH, self.force_down_y)
+        return self.current_position + Vector(
+            self.target_move_x * PLAYER_MOVEMENT_SCALAR - LEVEL_X_PUSH, self.force_down_y)
 
     def get_vertices(self) -> Tuple:
         initial_pos = (self.current_position + self.offset)
@@ -55,36 +65,39 @@ class Character(Renderable):
             (initial_pos + Vector(0, self.size.y)).into_tuple()
         )
 
-    def render(self, canvas: simplegui.Canvas, renderables: Renderable):
+    def render(self, canvas: simplegui.Canvas):
         target_position = self.get_next_pos()
-        window_size = self.window_size
+        window_size = self.window.get_size()
 
         # Check if next position will be in the window's width bounds and rectify if not
-        if target_position.x > window_size[0]:
-            target_position.x = window_size[0]
-        elif target_position.x < 0:
-            target_position.x = 0
+        if target_position.x > window_size[0] / 2:
+            target_position.x = window_size[0] / 2
+        elif target_position.x - self.size.x < 0:
+            # TODO: death
+            self.parent.children.remove(self)
 
         # Store any renderable the character is colliding with
         colliding_with = None
 
-        for renderable in self.level.renderables:
-            renderable_pos = renderable.get_next_pos()
-            # If character is on the same x bounds
-            if self.current_position.x >= renderable_pos.x and self.current_position.x <= renderable_pos.x + renderable.get_size().x:
-                # If character is about to either drop lower or continue to drop
-                if (renderable_pos.y - target_position.y) <= 0:
-                    # If character has just passed through
-                    if (renderable_pos.y - self.current_position.y) > 0:
-                        colliding_with = renderable
-                        target_position.y = renderable_pos.y - 0.1
-                        self.on_ground = True
-                        self.force_down_y = 0
-                        break
+        for r in self.parent.children:
+            if isinstance(r, Block):
+                r_pos = r.get_next_pos()
 
-        if colliding_with == None:
+                # If character is on the same x bounds
+                if r_pos.x <= self.current_position.x <= r_pos.x + r.get_size().x:
+                    # If character is about to either drop lower or continue to drop
+                    if (r_pos.y - target_position.y) <= 0:
+                        # If character has just passed through
+                        if (r_pos.y - self.current_position.y) > 0:
+                            colliding_with = r
+                            target_position.y = r_pos.y - 0.1
+                            self.on_ground = True
+                            self.force_down_y = 0
+                            break
+
+        if colliding_with is None:
             # If not colliding with any object, check window collision
-            if target_position.y <= window_size[1] and target_position.y >= 0:
+            if 0 <= target_position.y <= window_size[1]:
                 self.on_ground = False
                 self.force_down_y += PLAYER_GRAVITY
             else:

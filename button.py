@@ -51,7 +51,7 @@ class Button(Renderable):
         mouse = pygame.mouse.get_pos()
         mouse = Vector(mouse[0], mouse[1])
 
-        if self.get_bounds().is_inside(mouse):
+        if self.get_bounds().contains(mouse):
             fg = self.fg_over
             bg = self.bg_over
         else:

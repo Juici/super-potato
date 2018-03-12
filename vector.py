@@ -278,7 +278,7 @@ class Vector(object):
     # From
 
     @staticmethod
-    def new_from(*args, **kwargs) -> 'Vector':
+    def new(*args, **kwargs) -> 'Vector':
         """
         Creates a vector from the given arguments.
         """

@@ -93,7 +93,7 @@ class Polygon(object):
     def __len__(self):
         return len(self.points)
 
-    def is_inside(self, p: Vector) -> bool:
+    def contains(self, p: Vector) -> bool:
         """
         Returns `true` if the vector `p` is inside the polygon.
         """
