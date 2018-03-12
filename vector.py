@@ -238,10 +238,11 @@ class Vector(object):
         Returns an indexed item in the vector.
         """
         if index == 0:
-            return self.x
-        if index == 1:
-            return self.y
-        raise IndexError
+            return float(self.x)
+        elif index == 1:
+            return float(self.y)
+        else:
+            raise IndexError
 
     def __setitem__(self, index: int, value: numbers.Real):
         """
@@ -249,9 +250,10 @@ class Vector(object):
         """
         if index == 0:
             self.x = value
-        if index == 1:
+        elif index == 1:
             self.y = value
-        raise IndexError
+        else:
+            raise IndexError
 
     def __len__(self) -> int:
         """
@@ -280,8 +282,6 @@ class Vector(object):
         """
         Creates a vector from the given arguments.
         """
-        x, y = 0, 0
-
         try:
             x, y = args[0].x, args[0].y
         except TypeError:
@@ -290,12 +290,10 @@ class Vector(object):
             except TypeError:
                 try:
                     x, y = args[0], args[1]
-                    assert isinstance(x, numbers.Real) and isinstance(y,
-                            numbers.Real)
-                except TypeError | AssertionError:
+                    assert isinstance(x, numbers.Real) and isinstance(y, numbers.Real)
+                except (TypeError, AssertionError):
                     x = kwargs.get('x', 0)
                     y = kwargs.get('y', 0)
 
         assert isinstance(x, numbers.Real) and isinstance(y, numbers.Real)
         return Vector(x, y)
-
