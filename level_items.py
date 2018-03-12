@@ -40,7 +40,6 @@ class GenericSquare(Renderable):
     def get_bounding_box(self):
         return self.bounding_box
 
-
 class Trap(GenericSquare):
 
     def __init__(self, window: Window, position: Vector, size: Vector, color: Color):
@@ -85,6 +84,7 @@ class Character(Renderable):
         self.force_down_y = 0
         self.on_ground = False
         self.jumping = False
+        self.keyed_down = False
         self.offset = Vector(-size.x / 2, -size.y)
         self.bounding_box = Box(self)
 
@@ -99,6 +99,7 @@ class Character(Renderable):
         )
 
     def on_key_down(self, key: Key):
+        self.keyed_down = True # Prevents bug between level switching
         if key == Key.SPACE:
             self.jumping = True
         elif key == Key.KEY_A:
@@ -107,12 +108,13 @@ class Character(Renderable):
             self.target_move_x += 1
 
     def on_key_up(self, key: Key):
-        if key == Key.SPACE:
-            self.jumping = False
-        elif key == Key.KEY_A:
-            self.target_move_x += 1
-        elif key == Key.KEY_D:
-            self.target_move_x -= 1
+        if self.keyed_down:
+            if key == Key.SPACE:
+                self.jumping = False
+            elif key == Key.KEY_A:
+                self.target_move_x += 1
+            elif key == Key.KEY_D:
+                self.target_move_x -= 1
 
     def get_pos(self) -> Vector:
         return self.current_position + self.offset
