@@ -1,11 +1,7 @@
 import math
 import numbers
 
-<<<<<<< HEAD
-from typing import Any
-=======
 from typing import Any, Tuple, List
->>>>>>> 60d34763aaf52a4f78ca4e821767a689de121756
 
 
 class Vector(object):
@@ -49,28 +45,16 @@ class Vector(object):
         return self
 
     def add(self, other: Any) -> 'Vector':
-<<<<<<< HEAD
         """
         Add `other` to this vector, and return this vector.
         """
-=======
-        """
-        Add `other` to this vector, and return this vector.
-        """
->>>>>>> 60d34763aaf52a4f78ca4e821767a689de121756
         try:
             self._add_vec(other)
         except AssertionError:
             self._add_scalar(other)
-<<<<<<< HEAD
 
         return self
 
-=======
-
-        return self
-
->>>>>>> 60d34763aaf52a4f78ca4e821767a689de121756
     def __add__(self, other: Any) -> 'Vector':
         """
         Add `other` and this vector, and return the new vector.
@@ -125,7 +109,6 @@ class Vector(object):
         Returns the new vector.
         """
         return self.copy().multiply(k)
-<<<<<<< HEAD
 
     def __rmul__(self, k: numbers.Real) -> 'Vector':
         """
@@ -173,55 +156,6 @@ class Vector(object):
 
     # Length
 
-=======
-
-    def __rmul__(self, k: numbers.Real) -> 'Vector':
-        """
-        Performs scalar multiplication with this vector and k.
-        Returns the new vector.
-        """
-        return self.copy().multiply(k)
-
-    # Divide
-
-    def divide(self, k: numbers.Real) -> 'Vector':
-        """
-        Performs scalar division on this vector with k.
-        Returns this vector.
-        """
-        assert isinstance(k, numbers.Real)
-
-        return self.multiply(1.0 / k)
-
-    def __truediv__(self, k: numbers.Real) -> 'Vector':
-        """
-        Performs scalar division with this vector and k.
-        Returns the new vector.
-        """
-        return self.copy().divide(k)
-
-    # Normalize
-
-    def normalize(self) -> 'Vector':
-        """
-        Normalizes this vector. *Length of 1.*
-        """
-        return self.divide(self.length())
-
-    # Dot product
-
-    def dot(self, other: 'Vector') -> float:
-        """
-        Returns the dot product of this and the `other` vector.
-        """
-        assert isinstance(other.x, numbers.Real)
-        assert isinstance(other.y, numbers.Real)
-
-        return float(self.x * other.x + self.y * other.y)
-
-    # Length
-
->>>>>>> 60d34763aaf52a4f78ca4e821767a689de121756
     def length_squared(self) -> float:
         """
         Returns the square of the length of this vector. *Faster for comparisons.*
@@ -328,15 +262,40 @@ class Vector(object):
     # Into
 
     def into_tuple(self) -> Tuple[float, float]:
+        """
+        Returns this vector as a tuple.
+        """
         return float(self.x), float(self.y)
 
     def into_list(self) -> List:
+        """
+        Returns this vector as a list.
+        """
         return [float(self.x), float(self.y)]
 
     # From
 
-    def from_tuple(self, tuple: Tuple[float, float]):
-        return Vector(tuple[0], tuple[1])
+    @staticmethod
+    def new_from(*args, **kwargs) -> 'Vector':
+        """
+        Creates a vector from the given arguments.
+        """
+        x, y = 0, 0
 
-    def from_list(self, list: List):
-        return Vector(list[0], list[1])
+        try:
+            x, y = args[0].x, args[0].y
+        except TypeError:
+            try:
+                x, y = args[0][0], args[0][1]
+            except TypeError:
+                try:
+                    x, y = args[0], args[1]
+                    assert isinstance(x, numbers.Real) and isinstance(y,
+                            numbers.Real)
+                except TypeError | AssertionError:
+                    x = kwargs.get('x', 0)
+                    y = kwargs.get('y', 0)
+
+        assert isinstance(x, numbers.Real) and isinstance(y, numbers.Real)
+        return Vector(x, y)
+

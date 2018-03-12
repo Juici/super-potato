@@ -7,9 +7,9 @@ from constants import *
 from levelone import LevelOne
 
 BUTTON_SIZE = Vector(200, 50)
-IMAGE_SIZE = Vector(1000, 300)
 
-bg_image = simplegui.load_image('https://d2v9y0dukr6mq2.cloudfront.net/video/thumbnail/0kjHIH6/old-retro-video-game-arcade-clouds-moving-on-a-blue-sky_hcd0pxim__F0000.png')
+# TODO: Source image locally.
+BG_IMAGE = simplegui.load_image('https://d2v9y0dukr6mq2.cloudfront.net/video/thumbnail/0kjHIH6/old-retro-video-game-arcade-clouds-moving-on-a-blue-sky_hcd0pxim__F0000.png')
 
 class StartMenu(WindowHandler):
 
@@ -18,44 +18,38 @@ class StartMenu(WindowHandler):
                  #bg_over: Color = Color(220, 220, 220), fg_over: Color = Color(20, 20, 20),
                  #border_size: int = 0, font: Font = Font('sans-serif', 15)
 
-    def handle_btn_1_click(self, pos: Vector, dunno):
-        print ("Start button clicked")
-        self.window.destroy()
+    def btn1_on_click(self, btn: Button, pos: Vector):
+        print("Start button clicked")
 
-    def handle_btn_2_click(self, pos: Vector, dunno):
-        #load Jamie's help class
-        print ("Help button clicked")
-        pass
+        self.window.destroy()  # TODO: Switch to game view.
+
+    def btn2_on_click(self, btn: Button, pos: Vector):
+        # TODO: Load Jamie's help class.
+        print("Help button clicked")
 
     def __init__(self, window: Window):
         super().__init__(window)
 
         win_size = window.get_size()
-        self.btns = []
-        self.window = window
 
         # Template to create new button
         btn1 = Button(window, "Start Game", Vector(win_size[0] / 2 - BUTTON_SIZE.x / 2, 300), BUTTON_SIZE, Color(255, 0, 0), Color(0, 255, 0), Color(0, 255, 0), Color(255, 0, 0), 0)
-        btn1.set_click_handler(self.handle_btn_1_click)
-        self.btns.append(btn1)
+        btn1.set_click_handler(self.btn1_on_click)
+        self.children.append(btn1)
 
         btn2 = Button(window, "Help", Vector(win_size[0] / 2 - BUTTON_SIZE.x / 2 , 375), BUTTON_SIZE, Color(255, 0, 0), Color(0, 255, 0), Color(0, 255, 0), Color(255, 0, 0), 0)
-        btn2.set_click_handler(self.handle_btn_2_click)
-        self.btns.append(btn2)
+        btn2.set_click_handler(self.btn2_on_click)
+        self.children.append(btn2)
 
     def render(self, canvas: simplegui.Canvas):
-        canvas.draw_image(bg_image, (1920 / 2, 1080 / 2), (1920, 1080), (500, 300), WINDOW_SIZE)
+        # Draw background.
+        canvas.draw_image(BG_IMAGE, (1920 / 2, 1080 / 2), (1920, 1080), (500, 300),
+                          self.window.get_size())
+
+        # Draw children.
         super().render(canvas)
-        for btn in self.btns:
-            btn.render(canvas)
 
 #        self.background_pos_x += 1
 #        if self.background_pos_x == IMAGE_SIZE.x:
 #            self.background_pos_x = 0
 
-
-
-    def on_click(self, pos: Vector):
-        super().on_click(pos)
-        for btn in self.btns:
-            btn.on_click(pos)
