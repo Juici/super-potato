@@ -1,96 +1,233 @@
-from block import Block
-from util import Polygon, Color, Box
-from modules import simplegui
-from constants import *
-from vector import Vector
-from window import Renderable, Window
-from typing import Tuple
+from typing import List, TYPE_CHECKING
+from constants import PLAYER_SIZE, PLAYER_VELOCITY, PLAYER_ACCELERATION, Key
+from util import Color
+from geom import Vector, Polygon
+from window import Renderable
+
+import simplegui
+
+# Work around cyclic imports.
+if TYPE_CHECKING:
+    from world import World
+
+__all__ = ['LevelItem', 'Rect', 'Trap', 'Finish', 'Platform', 'Player']
 
 
-class GenericSquare(Renderable):
+class LevelItem(Renderable):
 
-    def __init__(self, window: Window, position: Vector, size: Vector, color: Color):
-        super().__init__(window)
-
-        self.position = position
-        self.size = size
-        self.color = color
-        self.bounding_box = Box(self)
+    def __init__(self, world: 'World'):
+        super().__init__(world.window)
+        self.world = world
 
     def get_bounds(self) -> Polygon:
-        return Polygon(
-            self.position,
-            self.position + (self.size.x, 0),
-            self.position + self.size,
-            self.position + (0, self.size.y),
-        )
+        raise NotImplementedError
+
+    def on_collide(self, player: 'Player'):
+        pass
+
+    def collides_with(self, polygon: Polygon) -> bool:
+        poly1 = self.get_bounds()
+        n1 = len(poly1)
+        if n1 == 0:
+            return False
+
+        poly2 = polygon
+        n2 = len(poly2)
+        if n2 == 0:
+            return False
+
+        # Basic cases where a point is inside the polygon.
+        if poly1.contains(poly2[0]):
+            return True
+        elif poly2.contains(poly1[0]):
+            return True
+
+        from geom import lines_intersect
+
+        # Loop bounds.
+        for i1 in range(n1):
+            j1 = (i1 + 1) % n1
+            l1 = (poly1[i1], poly1[j1])
+
+            for i2 in range(n2):
+                j2 = (i2 + 1) % n2
+                l2 = (poly2[i2], poly2[j2])
+
+                if lines_intersect(l1, l2):
+                    return True
+
+        return False  # TODO: implement some nutty polygon-polygon collision logic
+
+
+class Rect(LevelItem, Renderable):
+    """
+    A generic rectangle to be drawn on the canvas.
+    *Should be extended, not created directly.*
+    """
+
+    def __init__(self, world: 'World'):
+        super(LevelItem).__init__(world)
 
     def get_pos(self) -> Vector:
-        return self.position
+        """
+        Returns the position of the rectangle in the world.
+        """
+        raise NotImplementedError
+
+    def get_size(self) -> Vector:
+        """
+        Returns the size of the rectangle.
+        """
+        raise NotImplementedError
+
+    def get_render_pos(self) -> Vector:
+        """
+        Returns the render position of the rectangle.
+        """
+        pos = self.get_pos()
+        offset = self.world.level.offset
+
+        return pos + offset
+
+    def get_border_width(self) -> int:
+        """
+        Returns the border width.
+        """
+        return 1
+
+    def get_border_color(self) -> Color:
+        """
+        Returns the border color of the rectangle.
+        """
+        return Color(200, 200, 200)
+
+    def get_fill_color(self) -> Color:
+        """
+        Returns the fill color of the rectangle.
+        """
+        return Color(0, 0, 0, 0.0)
+
+    def render(self, canvas: simplegui.Canvas):
+        point_list = self.get_bounds().into_point_list()
+        border_width = self.get_border_width()
+        border_color = self.get_border_color()
+        fill_color = self.get_fill_color()
+
+        canvas.draw_polygon(point_list, border_width, border_color, fill_color)
+
+    def get_bounds(self) -> Polygon:
+        dpi_factor = self.window.hidpi_factor
+
+        pos = self.get_render_pos() * dpi_factor
+        size = self.get_size() * dpi_factor
+
+        return Polygon(
+            Vector(pos.x, pos.y),
+            Vector(pos.x + size.x, pos.y),
+            Vector(pos.x + size.x, pos.y + size.y),
+            Vector(pos.x, pos.y + size.y),
+        )
+
+
+class Trap(Rect):
+
+    def __init__(self, world: 'World', pos: Vector, size: Vector):
+        super().__init__(world)
+
+        self.pos = pos
+        self.size = size
+        self.color = Color(150, 40, 40)
+
+    def get_pos(self) -> Vector:
+        return self.pos
 
     def get_size(self) -> Vector:
         return self.size
 
-    def get_next_pos(self) -> Vector:
-        return self.position
+    def get_border_color(self) -> Color:
+        return self.color
 
-    def update_positions(self):
-        self.position -= Vector(LEVEL_X_PUSH, 0)
-        self.bounding_box.update_box()
-
-    def get_bounding_box(self):
-        return self.bounding_box
+    def on_collide(self, player: 'Player'):
+        pass  # TODO: death logic
 
 
-class Trap(GenericSquare):
+class Finish(Rect):
 
-    def __init__(self, window: Window, position: Vector, size: Vector, color: Color):
-        super().__init__(window, position, size, color)
+    def __init__(self, world: 'World', pos: Vector, size: Vector):
+        super().__init__(world)
 
-    def render(self, canvas: simplegui.Canvas):
-        super().update_positions()
-        canvas.draw_polygon(self.bounding_box.get_render_vertices(), 1, str(self.color),
-                            str(self.color))
-
-
-class Finish(GenericSquare):
-
-    def __init__(self, window: Window, position: Vector, size: Vector, color: Color):
-        super().__init__(window, position, size, color)
-
-    def render(self, canvas: simplegui.Canvas):
-        super().update_positions()
-        canvas.draw_polygon(self.bounding_box.get_render_vertices(), 1, str(self.color),
-                            str(self.color))
-
-
-class Platform(GenericSquare):
-
-    def __init__(self, window: Window, position: Vector, size: Vector, color: Color):
-        super().__init__(window, position, size, color)
-
-    def render(self, canvas: simplegui.Canvas):
-        super().update_positions()
-        canvas.draw_polygon(self.bounding_box.get_render_vertices(), 1, str(self.color))
-
-
-class Character(Renderable):
-
-    def __init__(self, window: Window, initial_pos: Vector, size: Vector):
-        super().__init__(window)
-
-        self.current_position = initial_pos
+        self.pos = pos
         self.size = size
-        self.target_move_x = 0
-        self.target_move_y = 0
-        self.force_down_y = 0  # 0 on ground collision, set to 1 and multiply by 2 each frame
+        self.color = Color(40, 200, 40)
+
+    def get_pos(self) -> Vector:
+        return self.pos
+
+    def get_size(self) -> Vector:
+        return self.size
+
+    def get_border_color(self) -> Color:
+        return self.color
+
+    def on_collide(self, player: 'Player'):
+        pass  # TODO: finish logic
+
+
+class Platform(Rect):
+
+    def __init__(self, world: 'World', pos: Vector, size: Vector,
+                 color: Color = Color(200, 200, 200), fill: bool = False):
+        super().__init__(world)
+
+        self.pos = pos
+        self.size = size
+        self.color = color
+        self.fill = fill
+
+    def get_pos(self) -> Vector:
+        return self.pos
+
+    def get_size(self) -> Vector:
+        return self.size
+
+    def get_border_color(self) -> Color:
+        return self.color
+
+    def get_fill_color(self) -> Color:
+        if self.fill:
+            return self.color
+        return super().get_fill_color()
+
+    def on_collide(self, player: 'Player'):
+        pass  # TODO: solid collision
+
+
+class Player(Renderable):
+
+    def __init__(self, world: 'World'):
+        super().__init__(world.window)
+        self.world = world
+
+        self.size = Vector(*PLAYER_SIZE)
+
+        self.pos = world.level.start_pos
+        self.last_pos = self.pos.copy()
+        self.vel = Vector(0, 0)
+        self.accel = Vector(0, 0)
+
         self.on_ground = False
         self.jumping = False
-        self.offset = Vector(-size.x / 2, -size.y)
+
+    def jump(self):
+        self.vel.y = PLAYER_VELOCITY[1]
+        self.accel.y = PLAYER_ACCELERATION[1]
 
     def get_bounds(self) -> Polygon:
-        pos = self.current_position
-        size = self.size
+        dpi_factor = self.window.hidpi_factor
+
+        pos = (self.pos - self.world.level.offset) * dpi_factor
+        size = self.size * dpi_factor
+
         return Polygon(
             Vector(pos.x, pos.y),
             Vector(pos.x + size.x, pos.y),
@@ -98,83 +235,46 @@ class Character(Renderable):
             Vector(pos.x, pos.y + size.y)
         )
 
-    def on_key_down(self, key: Key):
+    def on_key_down(self, key: int):
         if key == Key.SPACE:
-            self.jumping = True
+            self.jumping = True  # Allow holding jump button.
+
+            if self.on_ground:
+                self.jump()
+
         elif key == Key.KEY_A:
-            self.target_move_x -= 1
+            self.accel.x = -PLAYER_ACCELERATION[0]
+
         elif key == Key.KEY_D:
-            self.target_move_x += 1
+            self.accel.x = PLAYER_ACCELERATION[0]
 
     def on_key_up(self, key: Key):
         if key == Key.SPACE:
             self.jumping = False
+
         elif key == Key.KEY_A:
-            self.target_move_x += 1
+            if self.accel.x < 0:
+                self.accel.x = 0
+
         elif key == Key.KEY_D:
-            self.target_move_x -= 1
-
-    def get_pos(self) -> Vector:
-        return self.current_position
-
-    def get_size(self) -> Vector:
-        return self.size
-
-    def get_next_pos(self) -> Vector:
-        return self.current_position + Vector(
-            self.target_move_x * PLAYER_MOVEMENT_SCALAR - LEVEL_X_PUSH, self.force_down_y)
-
-    def get_vertices(self) -> Tuple:
-        initial_pos = (self.current_position + self.offset)
-        return (
-            initial_pos.into_tuple(),
-            (initial_pos + Vector(self.size.x, 0)).into_tuple(),
-            (initial_pos + Vector(self.size.x, self.size.y)).into_tuple(),
-            (initial_pos + Vector(0, self.size.y)).into_tuple()
-        )
+            if self.accel.x > 0:
+                self.accel.x = 0
 
     def render(self, canvas: simplegui.Canvas):
-        target_position = self.get_next_pos()
-        window_size = self.window.get_size()
+        bounds = self.get_bounds()
 
-        # Check if next position will be in the window's width bounds and rectify if not
-        if target_position.x > window_size[0] / 2:
-            target_position.x = window_size[0] / 2
-        elif target_position.x - self.size.x < 0:
-            # TODO: death
-            self.parent.children.remove(self)
+        # Draw player.
+        point_list = bounds.into_point_list()
+        color = Color(120, 120, 200)
 
-        # Store any renderable the character is colliding with
-        colliding_with = None
+        canvas.draw_polygon(point_list, 1, color, color)  # TODO: sprite?
 
-        for r in self.parent.children:
-            if isinstance(r, Block):
-                r_pos = r.get_next_pos()
+        # Update position.
+        self.last_pos = self.pos.copy()
+        self.pos.add(self.vel)
+        self.vel.add(self.accel)
 
-                # If character is on the same x bounds
-                if r_pos.x <= self.current_position.x <= r_pos.x + r.get_size().x:
-                    # If character is about to either drop lower or continue to drop
-                    if (r_pos.y - target_position.y) <= 0:
-                        # If character has just passed through
-                        if (r_pos.y - self.current_position.y) > 0:
-                            colliding_with = r
-                            target_position.y = r_pos.y - 0.1
-                            self.on_ground = True
-                            self.force_down_y = 0
-                            break
-
-        if colliding_with is None:
-            # If not colliding with any object, check window collision
-            if 0 <= target_position.y <= window_size[1]:
-                self.on_ground = False
-                self.force_down_y += PLAYER_GRAVITY
-            else:
-                target_position.y = window_size[1]
-                self.force_down_y = 0
-                self.on_ground = True
-
-        if self.jumping and self.on_ground:
-            self.force_down_y = -PLAYER_JUMP_FORCE
-
-        self.current_position = target_position
-        canvas.draw_polygon(self.get_vertices(), 1, "Red", "Red")
+        # Check collisions position.
+        for item in self.world.level.items:
+            if item.collides_with(bounds):
+                item.on_collide(self)

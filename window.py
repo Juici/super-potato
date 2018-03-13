@@ -1,9 +1,17 @@
 from typing import List, Tuple
 
-from constants import HIDPI_FACTOR
-from modules import pygame, simplegui
-from util import Polygon
-from vector import Vector
+import constants
+import geom
+
+import pygame
+import simplegui
+
+__all__ = ['Window', 'Renderable', 'RenderableParent', 'WindowHandler']
+
+HIDPI_FACTOR = constants.HIDPI_FACTOR
+
+Vector = geom.Vector
+Polygon = geom.Polygon
 
 
 class Window(object):
@@ -116,13 +124,13 @@ class Window(object):
         Passes the event to the handler.
         """
         if self.handler is not None:
-            self.handler.on_click(Vector.new(pos))
+            self.handler.on_click(Vector(*pos))
 
         if self._mouse_down:
             self._mouse_down = False
 
             if self.handler is not None:
-                self.handler.on_mouse_up(Vector.new(pos))
+                self.handler.on_mouse_up(Vector(*pos))
 
     def _on_drag(self, pos: Tuple[int, int]):
         """
@@ -134,10 +142,10 @@ class Window(object):
             self._last_mouse_pos = pos
 
             if self.handler is not None:
-                self.handler.on_mouse_down(Vector.new(pos))
+                self.handler.on_mouse_down(Vector(*pos))
         else:
             if self.handler is not None:
-                self.handler.on_drag(Vector.new(self._last_mouse_pos), Vector.new(pos))
+                self.handler.on_drag(Vector(*self._last_mouse_pos), Vector(*pos))
 
     def _on_key_down(self, key: int):
         """
@@ -261,18 +269,18 @@ class Renderable(object):
         self.window = window
         self.parent: 'RenderableParent' = None
 
+    def get_bounds(self) -> Polygon:
+        """
+        The bounds of the rendered object.
+        Used to handle mouse events.
+        """
+        raise NotImplementedError
+
     def render(self, canvas: simplegui.Canvas):
         """
         Called to render the object.
         """
         pass
-
-    def get_bounds(self) -> Polygon:
-        """
-        The bounds of the rendered object.
-        Used to handle click events.
-        """
-        raise NotImplementedError
 
     def is_mouse_over(self) -> bool:
         """

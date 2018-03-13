@@ -1,17 +1,21 @@
 import util
 
-from modules import simplegui
-from vector import Vector
+from util import Color, Font
+from geom import Vector
 from window import Window, WindowHandler
-from util import Font, Color
 from button import Button
-from level import GameView
+from world import World
+from levels import LEVELS
+
+import simplegui
+
+__all__ = ['StartMenu']
 
 
 class StartMenu(WindowHandler):
 
     def btn1_on_click(self, btn: Button, pos: Vector):
-        btn.window.handler = GameView(btn.window)
+        btn.window.handler = World(btn.window, LEVELS)
 
     def btn2_on_click(self, btn: Button, pos: Vector):
         # TODO: Load Jamie's help class.
@@ -35,7 +39,7 @@ class StartMenu(WindowHandler):
                       'Start',
                       Vector(win_center[0] - button_size[0] / 2,
                              win_center[1] - button_size[1]),
-                      Vector.new(button_size),
+                      Vector(*button_size),
                       Color(255, 0, 0), Color(0, 255, 0),
                       Color(0, 255, 0), Color(255, 0, 0),
                       font=button_font)
@@ -46,7 +50,7 @@ class StartMenu(WindowHandler):
                       'Help',
                       Vector(win_center[0] - button_size[0] / 2,
                              win_center[1] + button_size[1]),
-                      Vector.new(button_size),
+                      Vector(*button_size),
                       Color(255, 0, 0), Color(0, 255, 0),
                       Color(0, 255, 0), Color(255, 0, 0),
                       font=button_font)
