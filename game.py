@@ -1,6 +1,6 @@
-from constants import GAME_NAME, WINDOW_SIZE, FULLSCREEN
-from window import Window
+from constants import FULLSCREEN, GAME_NAME, WINDOW_SIZE
 from startmenu import StartMenu
+from window import Window
 
 
 def main():

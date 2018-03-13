@@ -9,6 +9,7 @@ __all__ = [
     'PLAYER_SIZE',
     'PLAYER_VELOCITY',
     'PLAYER_ACCELERATION',
+    'BUTTON_SIZE',
     'Key'
 ]
 
@@ -35,6 +36,8 @@ HIDPI_FACTOR = _get_hidpi_factor()  # HiDPI screen scale factor.
 PLAYER_SIZE = (50, 100)
 PLAYER_VELOCITY = (5, 10)
 PLAYER_ACCELERATION = (1, -10)
+
+BUTTON_SIZE = (200, 50)
 
 
 # Better than the basic simplegui key map.

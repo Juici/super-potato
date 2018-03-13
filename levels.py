@@ -1,3 +1,5 @@
+import simplegui
+
 from typing import List, TYPE_CHECKING
 from geom import Vector
 from level_items import LevelItem
@@ -5,8 +7,6 @@ from level_items import LevelItem
 # Work around cyclic imports.
 if TYPE_CHECKING:
     from world import World
-
-import simplegui
 
 __all__ = ['Level', 'LEVELS']
 

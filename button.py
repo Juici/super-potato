@@ -1,10 +1,10 @@
+import simplegui
+
 from typing import Callable
 from constants import HIDPI_FACTOR
 from util import Color, Font
 from geom import Vector, Polygon
 from window import Window, Renderable
-
-import simplegui
 
 __all__ = ['Button']
 

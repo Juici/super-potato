@@ -1,61 +1,64 @@
 import util
+import simplegui
 
 from util import Color, Font
 from geom import Vector
 from window import Window, WindowHandler
 from button import Button
-from world import World
-from levels import LEVELS
-
-import simplegui
 
 __all__ = ['StartMenu']
 
 
 class StartMenu(WindowHandler):
 
-    def btn1_on_click(self, btn: Button, pos: Vector):
+    def start(self, btn: Button, pos: Vector):
+        from world import World
+        from levels import LEVELS
+
         btn.window.handler = World(btn.window, LEVELS)
 
-    def btn2_on_click(self, btn: Button, pos: Vector):
-        # TODO: Load Jamie's help class.
-        print("Help button clicked")
+    def help(self, btn: Button, pos: Vector):
+        from helpmenu import HelpMenu
+
+        btn.window.handler = HelpMenu(btn.window)
 
     def __init__(self, window: Window):
         super().__init__(window)
+
+        from constants import BUTTON_SIZE
 
         win_size = window.get_size()
         win_center = (win_size[0] / 2, win_size[1] / 2)
 
         dpi_factor = window.hidpi_factor
 
-        button_size = (200 * dpi_factor, 50 * dpi_factor)
+        button_size = (BUTTON_SIZE[0] * dpi_factor, BUTTON_SIZE[1] * dpi_factor)
         button_font = Font('sans-serif', 16, dpi_factor)
 
         self.bg_image = util.load_image('assets/background.png')
 
         # Template to create new button
-        btn1 = Button(window,
-                      'Start',
-                      Vector(win_center[0] - button_size[0] / 2,
-                             win_center[1] - button_size[1]),
-                      Vector(*button_size),
-                      Color(255, 0, 0), Color(0, 255, 0),
-                      Color(0, 255, 0), Color(255, 0, 0),
-                      font=button_font)
-        btn1.set_click_handler(self.btn1_on_click)
-        self.children.append(btn1)
+        start_btn = Button(window,
+                           'Start',
+                           Vector(win_center[0] - button_size[0] / 2,
+                                  win_center[1] - button_size[1]),
+                           Vector(*button_size),
+                           Color(255, 0, 0), Color(0, 255, 0),
+                           Color(0, 255, 0), Color(255, 0, 0),
+                           font=button_font)
+        start_btn.set_click_handler(self.start)
+        self.children.append(start_btn)
 
-        btn2 = Button(window,
-                      'Help',
-                      Vector(win_center[0] - button_size[0] / 2,
-                             win_center[1] + button_size[1]),
-                      Vector(*button_size),
-                      Color(255, 0, 0), Color(0, 255, 0),
-                      Color(0, 255, 0), Color(255, 0, 0),
-                      font=button_font)
-        btn2.set_click_handler(self.btn2_on_click)
-        self.children.append(btn2)
+        help_btn = Button(window,
+                          'Help',
+                          Vector(win_center[0] - button_size[0] / 2,
+                                 win_center[1] + button_size[1]),
+                          Vector(*button_size),
+                          Color(255, 0, 0), Color(0, 255, 0),
+                          Color(0, 255, 0), Color(255, 0, 0),
+                          font=button_font)
+        help_btn.set_click_handler(self.help)
+        self.children.append(help_btn)
 
     def render(self, canvas: simplegui.Canvas):
         # Draw background.
@@ -67,7 +70,3 @@ class StartMenu(WindowHandler):
 
         # Draw children.
         super().render(canvas)
-
-#        self.background_pos_x += 1
-#        if self.background_pos_x == IMAGE_SIZE.x:
-#            self.background_pos_x = 0
