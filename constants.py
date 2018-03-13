@@ -1,28 +1,43 @@
-# Declare constants to be used throughout the game in this file.
-
 from enum import IntEnum
+from sys import argv
+
+__all__ = [
+    'GAME_NAME',
+    'WINDOW_SIZE',
+    'FULLSCREEN',
+    'HIDPI_FACTOR',
+    'PLAYER_SIZE',
+    'PLAYER_VELOCITY',
+    'PLAYER_ACCELERATION',
+    'BUTTON_SIZE',
+    'Key'
+]
+
+
+def _get_hidpi_factor() -> float:
+    for arg in argv:
+        flag = str(arg).lower()
+
+        if flag.startswith('--dpi-scale='):
+            try:
+                return float(flag[12:])
+            except ArithmeticError:
+                break
+    return 1.0
+
 
 GAME_NAME = "Super Potato"  # Game name and title of window.
-WINDOW_SIZE = (-1, -1)  # The default window size.
-WINDOW_SIZE2 = (600, 400)  # The backup window size if pygame hacks are off.
+WINDOW_SIZE = (1000, 600)  # The default window size.
 
-SHOW_CONTROL_PANEL = False  # Display the simplegui control panel.
 FULLSCREEN = False  # Display fullscreen.
 
-PYGAME_HACKS = True  # Enable hacks for pygame implementation of simplegui.
+HIDPI_FACTOR = _get_hidpi_factor()  # HiDPI screen scale factor.
 
+PLAYER_SIZE = (50, 100)
+PLAYER_VELOCITY = (5, 10)
+PLAYER_ACCELERATION = (1, -10)
 
-# Check pygame availability and disable PYGAME_HACKS if unavailable.
-def _check_pygame():
-    import util
-    global PYGAME_HACKS
-    if util.pygame is None:
-        PYGAME_HACKS = False
-    del util
-
-
-_check_pygame()  # Run check.
-del _check_pygame  # Check namespace.
+BUTTON_SIZE = (200, 50)
 
 
 # Better than the basic simplegui key map.
@@ -145,3 +160,6 @@ class Key(IntEnum):
     BACK_SLASH = 220
     RIGHT_BRACKET = 221
     SINGLE_QUOTE = 222
+
+
+del _get_hidpi_factor
