@@ -1,9 +1,17 @@
 from typing import List, Tuple
 
-from constants import HIDPI_FACTOR
-from modules import pygame, simplegui
-from util import Polygon
-from vector import Vector
+import constants
+import geom
+
+import pygame
+import simplegui
+
+__all__ = ['Window', 'Renderable', 'RenderableParent', 'WindowHandler']
+
+HIDPI_FACTOR = constants.HIDPI_FACTOR
+
+Vector = geom.Vector
+Polygon = geom.Polygon
 
 
 class Window(object):
@@ -34,6 +42,8 @@ class Window(object):
         self.frame.set_mousedrag_handler(self._on_drag)
         self.frame.set_keydown_handler(self._on_key_down)
         self.frame.set_keyup_handler(self._on_key_up)
+
+        self._mouse_down = False
 
     def show(self):
         """
@@ -114,15 +124,28 @@ class Window(object):
         Passes the event to the handler.
         """
         if self.handler is not None:
-            self.handler.on_click(Vector(pos[0], pos[1]))
+            self.handler.on_click(Vector(*pos))
+
+        if self._mouse_down:
+            self._mouse_down = False
+
+            if self.handler is not None:
+                self.handler.on_mouse_up(Vector(*pos))
 
     def _on_drag(self, pos: Tuple[int, int]):
         """
         Called whenever the window receives a mouse drag event.
         Passes the event to the handler.
         """
-        if self.handler is not None:
-            self.handler.on_drag(Vector(pos[0], pos[1]))
+        if not self._mouse_down:
+            self._mouse_down = True
+            self._last_mouse_pos = pos
+
+            if self.handler is not None:
+                self.handler.on_mouse_down(Vector(*pos))
+        else:
+            if self.handler is not None:
+                self.handler.on_drag(Vector(*self._last_mouse_pos), Vector(*pos))
 
     def _on_key_down(self, key: int):
         """
@@ -244,7 +267,14 @@ class Renderable(object):
 
     def __init__(self, window: Window):
         self.window = window
-        self.parent: 'Renderable' = None
+        self.parent: 'RenderableParent' = None
+
+    def get_bounds(self) -> Polygon:
+        """
+        The bounds of the rendered object.
+        Used to handle mouse events.
+        """
+        raise NotImplementedError
 
     def render(self, canvas: simplegui.Canvas):
         """
@@ -252,22 +282,33 @@ class Renderable(object):
         """
         pass
 
-    def get_bounds(self) -> Polygon:
-        """
-        The bounds of the rendered object.
-        Used to handle click events.
-        """
-        raise NotImplementedError
-
     def is_mouse_over(self) -> bool:
         """
         Returns `true` if the mouse is over the object.
         """
-        return self.get_bounds().is_inside(self.window.get_cursor_pos())
+        return self.get_bounds().contains(self.window.get_cursor_pos())
 
     def on_click(self, pos: Vector):
         """
-        Called whenever renderable receives a click event.
+        Called whenever renderable receives a mouse click event.
+        """
+        pass
+
+    def on_mouse_down(self, pos: Vector):
+        """
+        Called whenever renderable receives a mouse down event.
+        """
+        pass
+
+    def on_mouse_up(self, pos: Vector):
+        """
+        Called whenever renderable receives a mouse up event.
+        """
+        pass
+
+    def on_drag(self, last: Vector, new: Vector):
+        """
+        Called whenever renderable receives a mouse drag event.
         """
         pass
 
@@ -293,6 +334,13 @@ class RenderableParent(Renderable):
         super().__init__(window)
         self.children: List[Renderable] = []
 
+    def add_child(self, child: Renderable):
+        """
+        Adds a child to this parent.
+        """
+        child.parent = self
+        self.children.append(child)
+
     def render(self, canvas: simplegui.Canvas):
         """
         Called to render the object and render it's children.
@@ -305,12 +353,39 @@ class RenderableParent(Renderable):
 
     def on_click(self, pos: Vector):
         """
-        Called when object receives a click event.
+        Called whenever parent receives a mouse click event.
         Also checks and passes event to children.
         """
         for child in self.children:
-            if child.get_bounds().is_inside(pos):
+            if child.get_bounds().contains(pos):
                 child.on_click(pos)
+
+    def on_mouse_down(self, pos: Vector):
+        """
+        Called whenever parent receives a mouse down event.
+        Also checks and passes event to children.
+        """
+        for child in self.children:
+            if child.get_bounds().contains(pos):
+                child.on_mouse_down(pos)
+
+    def on_mouse_up(self, pos: Vector):
+        """
+        Called whenever parent receives a mouse up event.
+        Also checks and passes event to children.
+        """
+        for child in self.children:
+            if child.get_bounds().contains(pos):
+                child.on_mouse_up(pos)
+
+    def on_drag(self, last: Vector, new: Vector):
+        """
+        Called whenever parent receives a mouse drag event.
+        Also checks and passes event to children.
+        """
+        for child in self.children:
+            if child.get_bounds().contains(last):
+                child.on_drag(last, new)
 
     def on_key_down(self, key: int):
         """
@@ -323,7 +398,8 @@ class RenderableParent(Renderable):
         """
         Called whenever the window receives a key up event.
         """
-        pass
+        for child in self.children:
+            child.on_key_up(key)
 
 
 class WindowHandler(RenderableParent):
@@ -358,8 +434,20 @@ class WindowHandler(RenderableParent):
         """
         super().on_click(pos)
 
-    def on_drag(self, pos: Vector):
+    def on_mouse_down(self, pos: Vector):
+        """
+        Called whenever the window receives a mouse down event.
+        """
+        super().on_mouse_down(pos)
+
+    def on_mouse_up(self, pos: Vector):
+        """
+        Called whenever the window receives a mouse up event.
+        """
+        super().on_mouse_up(pos)
+
+    def on_drag(self, last: Vector, new: Vector):
         """
         Called whenever the window receives a mouse drag event.
         """
-        pass
+        super().on_drag(last, new)
