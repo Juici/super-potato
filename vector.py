@@ -262,7 +262,39 @@ class Vector(object):
     # Into
 
     def into_tuple(self) -> Tuple[float, float]:
+        """
+        Returns this vector as a tuple.
+        """
         return float(self.x), float(self.y)
 
-    def into_list(self) -> List[float, float]:
+    def into_list(self) -> List:
+        """
+        Returns this vector as a list.
+        """
         return [float(self.x), float(self.y)]
+
+    # From
+
+    @staticmethod
+    def new_from(*args, **kwargs) -> 'Vector':
+        """
+        Creates a vector from the given arguments.
+        """
+        x, y = 0, 0
+
+        try:
+            x, y = args[0].x, args[0].y
+        except TypeError:
+            try:
+                x, y = args[0][0], args[0][1]
+            except TypeError:
+                try:
+                    x, y = args[0], args[1]
+                    assert isinstance(x, numbers.Real) and isinstance(y,
+                            numbers.Real)
+                except TypeError | AssertionError:
+                    x = kwargs.get('x', 0)
+                    y = kwargs.get('y', 0)
+
+        assert isinstance(x, numbers.Real) and isinstance(y, numbers.Real)
+        return Vector(x, y)

@@ -1,5 +1,6 @@
 from constants import FULLSCREEN, GAME_NAME, WINDOW_SIZE
 from startmenu import StartMenu
+from helpmenu import HelpMenu
 from window import Window
 
 
@@ -9,7 +10,7 @@ def main():
     """
 
     window = Window(GAME_NAME, WINDOW_SIZE, fullscreen=FULLSCREEN)
-    window.handler = StartMenu(window)
+    window.handler = HelpMenu(window)
 
     window.show()
 
