@@ -1,13 +1,12 @@
-from constants import FULLSCREEN, GAME_NAME, WINDOW_SIZE
-from startmenu import StartMenu
+from constants import GAME_NAME, WINDOW_SIZE, FULLSCREEN
 from window import Window
+from startmenu import StartMenu
 
 
 def main():
     """
     The main launch function.
     """
-
     window = Window(GAME_NAME, WINDOW_SIZE, fullscreen=FULLSCREEN)
     window.handler = StartMenu(window)
 

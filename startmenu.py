@@ -1,23 +1,21 @@
 import util
 
-from modules import simplegui
-from vector import Vector
+from util import Color, Font
+from geom import Vector
 from window import Window, WindowHandler
-from util import Font, Color
 from button import Button
-from levelone import LevelOne
+from world import World
+from levels import LEVELS
 
+import simplegui
 
-# TODO: Source image locally.
-# BG_IMAGE = simplegui.load_image('https://d2v9y0dukr6mq2.cloudfront.net/video/thumbnail/0kjHIH6/old-retro-video-game-arcade-clouds-moving-on-a-blue-sky_hcd0pxim__F0000.png')
+__all__ = ['StartMenu']
 
 
 class StartMenu(WindowHandler):
 
     def btn1_on_click(self, btn: Button, pos: Vector):
-        print("Start button clicked")
-
-        self.window.destroy()  # TODO: Switch to game view.
+        btn.window.handler = World(btn.window, LEVELS)
 
     def btn2_on_click(self, btn: Button, pos: Vector):
         # TODO: Load Jamie's help class.
@@ -41,7 +39,7 @@ class StartMenu(WindowHandler):
                       'Start',
                       Vector(win_center[0] - button_size[0] / 2,
                              win_center[1] - button_size[1]),
-                      Vector.new_from(button_size),
+                      Vector(*button_size),
                       Color(255, 0, 0), Color(0, 255, 0),
                       Color(0, 255, 0), Color(255, 0, 0),
                       font=button_font)
@@ -52,7 +50,7 @@ class StartMenu(WindowHandler):
                       'Help',
                       Vector(win_center[0] - button_size[0] / 2,
                              win_center[1] + button_size[1]),
-                      Vector.new_from(button_size),
+                      Vector(*button_size),
                       Color(255, 0, 0), Color(0, 255, 0),
                       Color(0, 255, 0), Color(255, 0, 0),
                       font=button_font)
