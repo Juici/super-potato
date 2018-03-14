@@ -59,14 +59,14 @@ class LevelItem(Renderable):
         return False  # TODO: implement some nutty polygon-polygon collision logic
 
 
-class Rect(LevelItem, Renderable):
+class Rect(LevelItem):
     """
     A generic rectangle to be drawn on the canvas.
     *Should be extended, not created directly.*
     """
 
     def __init__(self, world: 'World'):
-        super(LevelItem).__init__(world)
+        super().__init__(world)
 
     def get_pos(self) -> Vector:
         """
