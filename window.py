@@ -99,9 +99,10 @@ class Window(object):
         """
         assert size[0] > 0 and size[1] > 0
 
-        self.frame._pygame_surface: pygame.Surface = pygame.display.set_mode((size[0], size[0]),
-                                                                             simplegui.Frame._pygame_mode_flags,
-                                                                             simplegui.Frame._pygame_mode_depth)
+        self.frame._pygame_surface: pygame.Surface = \
+            pygame.display.set_mode((size[0], size[0]),
+                                    simplegui.Frame._pygame_mode_flags,
+                                    simplegui.Frame._pygame_mode_depth)
         self.frame._pygame_surface.fill(simplegui.Frame._background_pygame_color)
 
         # update display
@@ -194,9 +195,10 @@ class Window(object):
         simplegui.Frame._statusmouse_height = 0
 
         # redraw frame to correct size
-        frame._pygame_surface: pygame.Surface = pygame.display.set_mode((width, height),
-                                                                        simplegui.Frame._pygame_mode_flags,
-                                                                        simplegui.Frame._pygame_mode_depth)
+        frame._pygame_surface: pygame.Surface = \
+            pygame.display.set_mode((width, height),
+                                    simplegui.Frame._pygame_mode_flags,
+                                    simplegui.Frame._pygame_mode_depth)
         frame._pygame_surface.fill(simplegui.Frame._background_pygame_color)
 
         # update display
