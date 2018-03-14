@@ -1,7 +1,9 @@
 import math
-import numbers
 
-from typing import Any, Tuple, List
+from typing import Tuple, List, Any
+from numbers import Real
+
+__all__ = ['Vector', 'Polygon', 'on_segment', 'orientation', 'lines_intersect']
 
 
 class Vector(object):
@@ -9,12 +11,12 @@ class Vector(object):
     A vector in 2d space, with real x and y components.
     """
 
-    def __init__(self, x: numbers.Real, y: numbers.Real):
+    def __init__(self, x: Real, y: Real):
         """
         Creates a vector from the x and y components.
         """
-        assert isinstance(x, numbers.Real)
-        assert isinstance(y, numbers.Real)
+        assert isinstance(x, Real)
+        assert isinstance(y, Real)
 
         self.x = x
         self.y = y
@@ -25,19 +27,31 @@ class Vector(object):
         """
         Add a vector to this vector, returns this instance.
         """
-        assert isinstance(other.x, numbers.Real)
-        assert isinstance(other.y, numbers.Real)
+        assert isinstance(other.x, Real)
+        assert isinstance(other.y, Real)
 
         self.x += other.x
         self.y += other.y
 
         return self
 
-    def _add_scalar(self, k: numbers.Real) -> 'Vector':
+    def _add_indexable(self, other) -> 'Vector':
+        """
+        Add a vector to this vector, returns this instance.
+        """
+        assert isinstance(other[0], Real)
+        assert isinstance(other[1], Real)
+
+        self.x += other[0]
+        self.y += other[1]
+
+        return self
+
+    def _add_scalar(self, k: Real) -> 'Vector':
         """
         Add a scalar to this vector, and return this instance.
         """
-        assert isinstance(k, numbers.Real)
+        assert isinstance(k, Real)
 
         self.x += k
         self.y += k
@@ -50,8 +64,11 @@ class Vector(object):
         """
         try:
             self._add_vec(other)
-        except AssertionError:
-            self._add_scalar(other)
+        except (AttributeError, AssertionError):
+            try:
+                self._add_indexable(other)
+            except (IndexError, TypeError, AssertionError):
+                self._add_scalar(other)
 
         return self
 
@@ -91,26 +108,26 @@ class Vector(object):
 
     # Multiply
 
-    def multiply(self, k: numbers.Real) -> 'Vector':
+    def multiply(self, k: Real) -> 'Vector':
         """
         Performs scalar multiplication on this vector with k.
         Returns this vector.
         """
-        assert isinstance(k, numbers.Real)
+        assert isinstance(k, Real)
 
         self.x *= k
         self.y *= k
 
         return self
 
-    def __mul__(self, k: numbers.Real) -> 'Vector':
+    def __mul__(self, k: Real) -> 'Vector':
         """
         Performs scalar multiplication with this vector and k.
         Returns the new vector.
         """
         return self.copy().multiply(k)
 
-    def __rmul__(self, k: numbers.Real) -> 'Vector':
+    def __rmul__(self, k: Real) -> 'Vector':
         """
         Performs scalar multiplication with this vector and k.
         Returns the new vector.
@@ -119,16 +136,16 @@ class Vector(object):
 
     # Divide
 
-    def divide(self, k: numbers.Real) -> 'Vector':
+    def divide(self, k: Real) -> 'Vector':
         """
         Performs scalar division on this vector with k.
         Returns this vector.
         """
-        assert isinstance(k, numbers.Real)
+        assert isinstance(k, Real)
 
         return self.multiply(1.0 / k)
 
-    def __truediv__(self, k: numbers.Real) -> 'Vector':
+    def __truediv__(self, k: Real) -> 'Vector':
         """
         Performs scalar division with this vector and k.
         Returns the new vector.
@@ -149,8 +166,8 @@ class Vector(object):
         """
         Returns the dot product of this and the `other` vector.
         """
-        assert isinstance(other.x, numbers.Real)
-        assert isinstance(other.y, numbers.Real)
+        assert isinstance(other.x, Real)
+        assert isinstance(other.y, Real)
 
         return float(self.x * other.x + self.y * other.y)
 
@@ -238,20 +255,22 @@ class Vector(object):
         Returns an indexed item in the vector.
         """
         if index == 0:
-            return self.x
-        if index == 1:
-            return self.y
-        raise IndexError
+            return float(self.x)
+        elif index == 1:
+            return float(self.y)
+        else:
+            raise IndexError
 
-    def __setitem__(self, index: int, value: numbers.Real):
+    def __setitem__(self, index: int, value: Real):
         """
         Returns an indexed item in the vector.
         """
         if index == 0:
             self.x = value
-        if index == 1:
+        elif index == 1:
             self.y = value
-        raise IndexError
+        else:
+            raise IndexError
 
     def __len__(self) -> int:
         """
@@ -267,35 +286,93 @@ class Vector(object):
         """
         return float(self.x), float(self.y)
 
-    def into_list(self) -> List:
+
+class Polygon(object):
+    """
+    Represents a bounding area in the form of a polygon.
+    """
+
+    def __init__(self, *points: Vector):
         """
-        Returns this vector as a list.
+        Constructs a polygon from a list of Vectors.
         """
-        return [float(self.x), float(self.y)]
+        self.points = list(points)
 
-    # From
+    def __getitem__(self, item: int) -> Vector:
+        return self.points[item]
 
-    @staticmethod
-    def new_from(*args, **kwargs) -> 'Vector':
+    def __setitem__(self, key: int, value: Vector):
+        self.points[key] = value
+
+    def __len__(self):
+        return len(self.points)
+
+    def __iter__(self):
+        yield from self.points
+
+    def contains(self, p: Vector) -> bool:
         """
-        Creates a vector from the given arguments.
+        Returns `true` if the vector `p` is inside the polygon.
         """
-        x, y = 0, 0
+        n = len(self.points)
 
-        try:
-            x, y = args[0].x, args[0].y
-        except TypeError:
-            try:
-                x, y = args[0][0], args[0][1]
-            except TypeError:
-                try:
-                    x, y = args[0], args[1]
-                    assert isinstance(x, numbers.Real) and isinstance(y,
-                            numbers.Real)
-                except TypeError | AssertionError:
-                    x = kwargs.get('x', 0)
-                    y = kwargs.get('y', 0)
+        i = 0
+        j = n - 1
+        c = False
 
-        assert isinstance(x, numbers.Real) and isinstance(y, numbers.Real)
-        return Vector(x, y)
+        while i < n:
+            if ((self.points[i].y > p.y) != (self.points[j].y > p.y)) and (
+                    p.x < (self.points[j].x - self.points[i].x) * (p.y - self.points[i].y) / (
+                    self.points[j].y - self.points[i].y) + self.points[i].x):
+                c = not c
 
+            j = i
+            i += 1
+
+        return c
+
+    def into_point_list(self) -> List[Tuple[float, float]]:
+        """
+        Returns the polygon as point list.
+        """
+        return [p.into_tuple() for p in self.points]
+
+
+def on_segment(l: Tuple[Vector, Vector], p: Vector) -> bool:
+    """
+    Returns `true` if `p` lies on line segment `l`.
+    """
+    return (min(l[0].x, l[1].x) <= p.x <= max(l[0].x, l[1].x)
+            and min(l[0].y, l[1].y) <= p.y <= max(l[0].y, l[1].y))
+
+
+def orientation(p: Vector, q: Vector, r: Vector) -> int:
+    """
+    Find the orientation of (p, q, r).
+    < 0: anti-clockwise
+    0: colinear
+    > 0: clockwise
+    """
+    return (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y)
+
+
+def lines_intersect(l1: Tuple[Vector, Vector], l2: Tuple[Vector, Vector]) -> bool:
+    """
+    Returns `true` if the lines `l1` and `l2` intersect.
+    """
+    o1 = orientation(*l1, l2[0])
+    o2 = orientation(*l1, l2[1])
+    o3 = orientation(*l2, l1[0])
+    o4 = orientation(*l2, l1[1])
+
+    if o1 != o2 and o3 != o4:
+        return True
+
+    if o1 == 0 and on_segment(l1, l2[0]):
+        return True
+    if o2 == 0 and on_segment(l1, l2[1]):
+        return True
+    if o3 == 0 and on_segment(l2, l1[0]):
+        return True
+    if o4 == 0 and on_segment(l2, l1[1]):
+        return True
