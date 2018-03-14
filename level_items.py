@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from constants import PLAYER_SIZE, PLAYER_VELOCITY, PLAYER_ACCELERATION, Key
 from util import Color
 from geom import Vector, Polygon
