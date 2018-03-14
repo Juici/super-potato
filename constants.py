@@ -1,7 +1,17 @@
 from enum import IntEnum
 from sys import argv
 
-__all__ = ['GAME_NAME', 'WINDOW_SIZE', 'FULLSCREEN', 'HIDPI_FACTOR', 'Key']
+__all__ = [
+    'GAME_NAME',
+    'WINDOW_SIZE',
+    'FULLSCREEN',
+    'HIDPI_FACTOR',
+    'PLAYER_SIZE',
+    'PLAYER_VELOCITY',
+    'PLAYER_ACCELERATION',
+    'BUTTON_SIZE',
+    'Key'
+]
 
 
 def _get_hidpi_factor() -> float:
@@ -22,6 +32,12 @@ WINDOW_SIZE = (1000, 600)  # The default window size.
 FULLSCREEN = False  # Display fullscreen.
 
 HIDPI_FACTOR = _get_hidpi_factor()  # HiDPI screen scale factor.
+
+PLAYER_SIZE = (50, 100)
+PLAYER_VELOCITY = (5, 10)
+PLAYER_ACCELERATION = (1, -10)
+
+BUTTON_SIZE = (200, 50)
 
 
 # Better than the basic simplegui key map.

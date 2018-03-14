@@ -1,7 +1,7 @@
-from typing import Tuple
+import simplegui
 
-from vector import Vector
-from modules import simplegui
+from typing import Tuple
+from geom import Vector
 
 
 class Sprite(object):
