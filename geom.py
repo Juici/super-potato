@@ -1,7 +1,7 @@
 import math
 
-from numbers import Real
 from typing import Tuple, List, Any
+from numbers import Real
 
 __all__ = ['Vector', 'Polygon', 'on_segment', 'orientation', 'lines_intersect']
 

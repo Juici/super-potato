@@ -1,10 +1,7 @@
-from typing import Tuple
-
-import geom
-
 import simplegui
 
-Vector = geom.Vector
+from typing import Tuple
+from geom import Vector
 
 
 class Sprite(object):

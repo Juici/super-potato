@@ -1,11 +1,9 @@
-import geom
-
 import pygame
 import simplegui
 
-__all__ = ['load_image', 'Color', 'Font']
+from geom import Vector
 
-Vector = geom.Vector
+__all__ = ['load_image', 'Color', 'Font']
 
 
 def load_image(path: str) -> simplegui.Image:

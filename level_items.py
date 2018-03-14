@@ -1,10 +1,10 @@
+import simplegui
+
 from typing import TYPE_CHECKING
 from constants import PLAYER_SIZE, PLAYER_VELOCITY, PLAYER_ACCELERATION, Key
 from util import Color
 from geom import Vector, Polygon
 from window import Renderable
-
-import simplegui
 
 # Work around cyclic imports.
 if TYPE_CHECKING:
