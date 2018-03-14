@@ -1,17 +1,12 @@
-from typing import List, Tuple
-
-import constants
-import geom
-
 import pygame
 import simplegui
 
+from typing import List, Tuple
+
+from constants import HIDPI_FACTOR
+from geom import Vector, Polygon
+
 __all__ = ['Window', 'Renderable', 'RenderableParent', 'WindowHandler']
-
-HIDPI_FACTOR = constants.HIDPI_FACTOR
-
-Vector = geom.Vector
-Polygon = geom.Polygon
 
 
 class Window(object):

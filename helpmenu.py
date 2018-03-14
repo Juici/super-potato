@@ -1,5 +1,5 @@
-import simplegui
 import util
+import simplegui
 
 from util import Font, Color
 from geom import Vector

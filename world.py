@@ -1,8 +1,8 @@
+import simplegui
+
 from typing import List
 from window import Window, WindowHandler
 from levels import Level
-
-import simplegui
 
 __all__ = ['World']
 
