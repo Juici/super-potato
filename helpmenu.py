@@ -3,6 +3,8 @@ from window import Window, WindowHandler
 from button import Button
 from util import Font, Color
 from vector import Vector
+from startmenu import StartMenu
+from constants import FULLSCREEN, GAME_NAME, WINDOW_SIZE
 
 BUTTON_SIZE = Vector(200, 50)
 
@@ -11,9 +13,9 @@ BG_IMAGE = simplegui.load_image('https://d2v9y0dukr6mq2.cloudfront.net/video/thu
 class HelpMenu(WindowHandler):
 
     def btn1_on_click(self, btn: Button, pos: Vector):
-        print("Back button clicked")
+        from startmenu import StartMenu
 
-        self.window.destroy()  # TODO: Switch to game view.
+        btn.window.handler = StartMenu(btn.window)
 
     def __init__(self, window: Window):
         super().__init__(window)
@@ -30,8 +32,10 @@ class HelpMenu(WindowHandler):
                           self.window.get_size())
         super().render(canvas)
 
-        canvas.draw_text('Help menu', (430, 40), 28, 'Black')
-        canvas.draw_text('Keys:', (60,60), 24, 'Black')
-        canvas.draw_text('D - Go forwards', (60, 80), 24, 'Black')
-        canvas.draw_text('A - Go backwards', (60, 100), 24, 'Black')
-        canvas.draw_text('Space bar - Jump', (60, 120), 24, 'Black')
+        window_size = self.window.get_size()
+
+        canvas.draw_text('Help menu', (window_size[0] / 2.3, 80), 28, 'Black')
+        canvas.draw_text('Keys:', (window_size[0] / 10,100), 24, 'Black')
+        canvas.draw_text('D - Go forwards', (window_size[0] / 16, 120), 24, 'Black')
+        canvas.draw_text('A - Go backwards', (window_size[0] / 16, 140), 24, 'Black')
+        canvas.draw_text('Space bar - Jump', (window_size[0] / 16, 160), 24, 'Black')
