@@ -267,12 +267,17 @@ class Player(Renderable):
         point_list = bounds.into_point_list()
         color = Color(120, 120, 200)
 
-        canvas.draw_polygon(point_list, 1, color, color)  # TODO: sprite?
+        canvas.draw_polygon(point_list, 1, str(color), str(color))  # TODO: sprite?
 
         # Update position.
         self.last_pos = self.pos.copy()
         self.pos.add(self.vel)
+
+
         self.vel.add(self.accel)
+        if abs(self.vel.x) > PLAYER_VELOCITY[0]:
+            sign = self.vel.x / abs(self.vel.x)
+            self.vel.x = sign * PLAYER_VELOCITY[0]
 
         # Check collisions position.
         for item in self.world.level.items:
