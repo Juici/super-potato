@@ -41,7 +41,7 @@ BUTTON_SIZE = (200, 50)
 
 LEVEL_BACKGROUND_IMAGE = 'assets/background.png'
 LEVEL_BACKGROUND_DIMS = (1920, 1080)
-LEVEL_BACKGROUND_STRETCH_X = 3000
+LEVEL_BACKGROUND_STRETCH_X = 1200
 
 
 # Better than the basic simplegui key map.
