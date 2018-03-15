@@ -13,9 +13,8 @@ class StartMenu(WindowHandler):
 
     def start(self, btn: Button, pos: Vector):
         from world import World
-        from levels import LEVELS
 
-        btn.window.handler = World(btn.window, LEVELS)
+        btn.window.handler = World(btn.window)
 
     def help(self, btn: Button, pos: Vector):
         from helpmenu import HelpMenu
