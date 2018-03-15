@@ -1,7 +1,7 @@
 import simplegui
 
 from typing import TYPE_CHECKING
-from constants import PLAYER_SIZE, PLAYER_VELOCITY, PLAYER_ACCELERATION, Key
+from constants import PLAYER_SIZE, PLAYER_VELOCITY, PLAYER_ACCELERATION, PLAYER_VELOCITY_DIVISOR, Key
 from util import Color
 from geom import Vector, Polygon
 from window import Renderable
@@ -217,6 +217,7 @@ class Player(Renderable):
 
         self.on_ground = False
         self.jumping = False
+        self.moving_x = False
 
     def jump(self):
         self.vel.y = PLAYER_VELOCITY[1]
@@ -275,9 +276,14 @@ class Player(Renderable):
 
 
         self.vel.add(self.accel)
-        if abs(self.vel.x) > PLAYER_VELOCITY[0]:
-            sign = self.vel.x / abs(self.vel.x)
+
+        vel_mag_x = abs(self.vel.x)
+        if vel_mag_x > PLAYER_VELOCITY[0]:
+            sign = self.vel.x / vel_mag_x
             self.vel.x = sign * PLAYER_VELOCITY[0]
+
+        if self.accel.x == 0:
+            self.vel.x /= PLAYER_VELOCITY_DIVISOR
 
         # Check collisions position.
         for item in self.world.level.items:
