@@ -36,13 +36,13 @@ HIDPI_FACTOR = _get_hidpi_factor()  # HiDPI screen scale factor.
 PLAYER_SIZE = (50, 100)
 PLAYER_VELOCITY = (2.8, 10)
 PLAYER_ACCELERATION = (0.2, -10)
+PLAYER_VELOCITY_DIVISOR = 1.05
 
 BUTTON_SIZE = (200, 50)
 
 LEVEL_BACKGROUND_IMAGE = 'assets/background.png'
 LEVEL_BACKGROUND_DIMS = (1920, 1080)
 LEVEL_BACKGROUND_STRETCH_X = 1200
-
 
 # Better than the basic simplegui key map.
 class Key(IntEnum):
