@@ -28,7 +28,12 @@ class Level(object):
         self.items: List[LevelItem] = []
         self.finished = False
 
-        self.parallax = load_image(LEVEL_BACKGROUND_IMAGE)
+        # Just some initialisation stuff here; less to compute later
+        self.background_offset = LEVEL_BACKGROUND_STRETCH_X / 2
+        self.background_image = load_image(LEVEL_BACKGROUND_IMAGE)
+        self.bg_size = (self.background_image.get_width(), self.background_image.get_height())
+        self.bg_center = (self.bg_size[0] / 2, self.bg_size[1] / 2)
+        self.half_window_height = WINDOW_SIZE[1] / 2
 
     def add_item(self, item: LevelItem):
         """
@@ -47,11 +52,20 @@ class Level(object):
         Called on every game tick to render the level.
         """
 
-        # Draw parallax background, todo
-        bg_size = (self.parallax.get_width(), self.parallax.get_height())
-        bg_center = (bg_size[0] / 2, bg_size[1] / 2)
-        window_center = (-self.offset.x, WINDOW_SIZE[1] / 2)
-        canvas.draw_image(self.parallax, bg_center, bg_size, window_center, (LEVEL_BACKGROUND_STRETCH_X, WINDOW_SIZE[1]))
+        # Draw background
+
+        window_center_first = (
+            -(self.offset.x % LEVEL_BACKGROUND_STRETCH_X) + self.background_offset,
+            self.half_window_height
+        )
+        window_center_next =  (
+            window_center_first[0] + LEVEL_BACKGROUND_STRETCH_X,
+            window_center_first[1]
+        )
+        real_size = (LEVEL_BACKGROUND_STRETCH_X, WINDOW_SIZE[1])
+
+        canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_first, real_size)
+        canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_next, real_size)
 
         # Render items
         for item in self.items:
