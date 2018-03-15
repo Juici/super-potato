@@ -34,10 +34,14 @@ FULLSCREEN = False  # Display fullscreen.
 HIDPI_FACTOR = _get_hidpi_factor()  # HiDPI screen scale factor.
 
 PLAYER_SIZE = (50, 100)
-PLAYER_VELOCITY = (5, 10)
-PLAYER_ACCELERATION = (1, -10)
+PLAYER_VELOCITY = (2.8, 10)
+PLAYER_ACCELERATION = (0.2, -10)
 
 BUTTON_SIZE = (200, 50)
+
+LEVEL_BACKGROUND_IMAGE = 'assets/background.png'
+LEVEL_BACKGROUND_DIMS = (1920, 1080)
+LEVEL_BACKGROUND_STRETCH_X = 3000
 
 
 # Better than the basic simplegui key map.
