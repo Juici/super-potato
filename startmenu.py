@@ -67,6 +67,3 @@ class StartMenu(WindowHandler):
         window_size = self.window.get_size()
         window_center = (window_size[0] / 2, window_size[1] / 2)
         canvas.draw_image(self.bg_image, bg_center, bg_size, window_center, window_size)
-
-        # Draw children.
-        super().render(canvas)
