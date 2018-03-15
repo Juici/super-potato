@@ -210,6 +210,14 @@ class Vector(object):
         """
         return math.acos(self.dot(other) / (self.length() * other.length()))
 
+    # Lerp
+
+    def lerp(self, other: 'Vector', factor) -> 'Vector':
+        """
+        Transitions one vector into another across a line with scalar 'factor'
+        """
+        return (1.0 - factor) * self + factor * other
+
     # Copy
 
     def copy(self) -> 'Vector':
