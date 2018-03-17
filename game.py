@@ -3,6 +3,7 @@ from startmenu import StartMenu
 from window import Window
 
 
+
 def main():
     """
     The main launch function.

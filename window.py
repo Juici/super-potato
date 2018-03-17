@@ -20,7 +20,7 @@ class Window(object):
         self.handler = WindowHandler(self)  # A noop window handler.
 
         self._hide_control_panel()  # Hide control panel.
-        self.fullscreen = self._set_fullscreen(fullscreen)  # Set fullscreen state.
+#        self.fullscreen = self._set_fullscreen(fullscreen)  # Set fullscreen state.
 
         # Get appropriate window size.
         self.width, self.height = self._get_window_size(size, fullscreen)
