@@ -13,9 +13,8 @@ class StartMenu(WindowHandler):
 
     def start(self, btn: Button, pos: Vector):
         from world import World
-        from levels import LEVELS
 
-        btn.window.handler = World(btn.window, LEVELS)
+        btn.window.handler = World(btn.window)
 
     def help(self, btn: Button, pos: Vector):
         from helpmenu import HelpMenu
@@ -67,3 +66,6 @@ class StartMenu(WindowHandler):
         window_size = self.window.get_size()
         window_center = (window_size[0] / 2, window_size[1] / 2)
         canvas.draw_image(self.bg_image, bg_center, bg_size, window_center, window_size)
+
+        # Draw children.
+        super().render(canvas)

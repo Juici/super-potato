@@ -8,7 +8,6 @@ def main():
     """
     The main launch function.
     """
-
     window = Window(GAME_NAME, WINDOW_SIZE, fullscreen=FULLSCREEN)
     window.handler = StartMenu(window)
 

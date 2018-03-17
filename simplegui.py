@@ -1,0 +1,7 @@
+# noinspection PyUnresolvedReferences
+from SimpleGUICS2Pygame.simpleguics2pygame import *
+
+# noinspection PyUnresolvedReferences,PyProtectedMember
+from SimpleGUICS2Pygame.simpleguics2pygame import _load_local_image
+# noinspection PyUnresolvedReferences,PyProtectedMember
+from SimpleGUICS2Pygame.simpleguics2pygame import _SIMPLEGUIFONTFACE_TO_PYGAMEFONTNAME
