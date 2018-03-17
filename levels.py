@@ -5,6 +5,7 @@ from geom import Vector
 from level_items import LevelItem
 from constants import LEVEL_BACKGROUND_IMAGE, LEVEL_BACKGROUND_DIMS, LEVEL_BACKGROUND_STRETCH_X, WINDOW_SIZE
 from util import load_image
+from score import Score
 
 # Work around cyclic imports.
 if TYPE_CHECKING:
@@ -34,6 +35,7 @@ class Level(object):
         self.bg_size = (self.background_image.get_width(), self.background_image.get_height())
         self.bg_center = (self.bg_size[0] / 2, self.bg_size[1] / 2)
         self.half_window_height = WINDOW_SIZE[1] / 2
+        self.score = 0
 
     def add_item(self, item: LevelItem):
         """
@@ -66,6 +68,9 @@ class Level(object):
 
         canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_first, real_size)
         canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_next, real_size)
+
+        self.score = self.score + 1
+        canvas.draw_text("SCORE: " + str(self.score), (750, 40), 40, "White")
 
         # Render items
         for item in self.items:
