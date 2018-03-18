@@ -184,6 +184,8 @@ class Player(Renderable):
         self.jumping = False
         self.moving_x = False
 
+        self.colliding_with = None
+
         self.score = 0
 
     def jump(self):
@@ -241,6 +243,19 @@ class Player(Renderable):
             self.vel.x = math.copysign(PLAYER_VELOCITY[0], self.vel.x)
 
         # Check collisions position.
+        did_collide = False
         for item in self.world.level.items:
             if item.collides_with(bounds):
                 item.on_collide(self)
+                if did_collide == False:
+                    self.colliding_with = item
+                    did_collide = True
+
+        # Do gravity
+        if did_collide:
+            hit_pos = self.colliding_with.get_bounds().min
+            self.accel.y = 0
+            self.vel.y = 0
+            self.pos = Vector(self.pos.x, hit_pos.y - self.size.y)
+        else:
+            self.accel.y = -ACCEL_GRAVITY
