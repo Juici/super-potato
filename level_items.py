@@ -252,7 +252,7 @@ class Player(Renderable):
                     did_collide = True
 
         # Do gravity
-        if did_collide:
+        if did_collide and isinstance(self.colliding_with, Platform):
             hit_pos = self.colliding_with.get_bounds().min
             self.accel.y = 0
             self.vel.y = 0
