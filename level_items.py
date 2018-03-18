@@ -3,7 +3,7 @@ import simplegui
 from typing import TYPE_CHECKING
 from constants import PLAYER_SIZE, PLAYER_VELOCITY, PLAYER_ACCELERATION, PLAYER_VELOCITY_DIVISOR, LEVEL_BLOCK_SCALE_PX, Key
 from util import Color
-from geom import Vector, Polygon
+from geom import Vector, Polygon, BoundingBox
 from window import Renderable
 from math import floor
 
@@ -23,45 +23,16 @@ class LevelItem(Renderable):
     def __init__(self, world: 'World'):
         super().__init__(world.window)
         self.world = world
+        self.bounds = BoundingBox(Vector(0, 0), Vector(0, 0))
 
-    def get_bounds(self) -> Polygon:
-        raise NotImplementedError
+    def get_bounds(self) -> BoundingBox:
+        return self.bounds
 
     def on_collide(self, player: 'Player'):
         pass
 
-    def collides_with(self, polygon: Polygon) -> bool:
-        poly1 = self.get_bounds()
-        n1 = len(poly1)
-        if n1 == 0:
-            return False
-
-        poly2 = polygon
-        n2 = len(poly2)
-        if n2 == 0:
-            return False
-
-        # Basic cases where a point is inside the polygon.
-        if poly1.contains(poly2[0]):
-            return True
-        elif poly2.contains(poly1[0]):
-            return True
-
-        from geom import lines_intersect
-
-        # Loop bounds.
-        for i1 in range(n1):
-            j1 = (i1 + 1) % n1
-            l1 = (poly1[i1], poly1[j1])
-
-            for i2 in range(n2):
-                j2 = (i2 + 1) % n2
-                l2 = (poly2[i2], poly2[j2])
-
-                if lines_intersect(l1, l2):
-                    return True
-
-        return False  # TODO: implement some nutty polygon-polygon collision logic
+    def collides_with(self, other: BoundingBox) -> bool:
+        return self.get_bounds().collides(other)
 
 
 class Rect(LevelItem):
@@ -113,25 +84,18 @@ class Rect(LevelItem):
         return Color(0, 0, 0)
 
     def render(self, canvas: simplegui.Canvas):
-        point_list = self.get_bounds().into_point_list()
+        self.bounds.min = self.get_pos()
+        self.bounds.max = self.bounds.min + self.get_size()
+
+        point_list = self.bounds.into_point_list()
         border_width = self.get_border_width()
         border_color = str(self.get_border_color())
         fill_color = str(self.get_fill_color())
 
         canvas.draw_polygon(point_list, border_width, border_color, fill_color)
 
-    def get_bounds(self) -> Polygon:
-        dpi_factor = self.window.hidpi_factor
-
-        pos = self.get_render_pos() * dpi_factor
-        size = self.get_size() * dpi_factor
-
-        return Polygon(
-            Vector(pos.x, pos.y),
-            Vector(pos.x + size.x, pos.y),
-            Vector(pos.x + size.x, pos.y + size.y),
-            Vector(pos.x, pos.y + size.y),
-        )
+    def get_bounds(self) -> BoundingBox:
+        return self.bounds
 
 
 class Trap(Rect):
@@ -223,23 +187,20 @@ class Player(Renderable):
         self.on_ground = False
         self.jumping = False
         self.moving_x = False
+        self.bounds = BoundingBox(Vector(0, 0), self.size)
 
     def jump(self):
         self.vel.y = PLAYER_VELOCITY[1]
         self.accel.y = PLAYER_ACCELERATION[1]
 
-    def get_bounds(self) -> Polygon:
-        dpi_factor = self.window.hidpi_factor
+    def get_pos(self):
+        return self.pos
 
-        pos = (self.pos - self.world.level.offset) * dpi_factor
-        size = self.size * dpi_factor
+    def get_size(self):
+        return self.size
 
-        return Polygon(
-            Vector(pos.x, pos.y),
-            Vector(pos.x + size.x, pos.y),
-            Vector(pos.x + size.x, pos.y + size.y),
-            Vector(pos.x, pos.y + size.y)
-        )
+    def get_bounds(self) -> BoundingBox:
+        return self.bounds
 
     def on_key_down(self, key: int):
         if key == Key.SPACE:
@@ -268,6 +229,8 @@ class Player(Renderable):
 
     def render(self, canvas: simplegui.Canvas):
         bounds = self.get_bounds()
+        bounds.min = self.get_pos()
+        bounds.max = bounds.min + self.get_size()
 
         # Draw player.
         point_list = bounds.into_point_list()
