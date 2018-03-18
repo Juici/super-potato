@@ -17,6 +17,7 @@ def load_image(path: str) -> simplegui.Image:
         return simplegui._load_local_image(path)
 
 
+
 class Color(object):
 
     def __init__(self, r: int, g: int, b: int, a: float = 1.0):
