@@ -10,6 +10,7 @@ __all__ = [
     'PLAYER_VELOCITY',
     'PLAYER_ACCELERATION',
     'BUTTON_SIZE',
+    'LEVEL_BLOCK_SCALE_PX',
     'Key'
 ]
 
