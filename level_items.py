@@ -81,7 +81,7 @@ class Rect(LevelItem):
 
         pos = Vector(
             pos[0] * BLOCK_SIZE,
-            GRID_SIZE[1] - pos[1] * BLOCK_SIZE,
+            (GRID_SIZE[1] - pos[1] - 1) * BLOCK_SIZE,
         )
         size = Vector(
             size[0] * BLOCK_SIZE,
@@ -96,17 +96,17 @@ class Rect(LevelItem):
 
 class Trap(Rect):
 
-    def __init__(self, world: 'World', pos: Vector, size: Vector):
+    def __init__(self, world: 'World', pos: Tuple[int, int], size: Tuple[int, int]):
         super().__init__(world)
 
         self.pos = pos
         self.size = size
         self.color = Color(150, 40, 40)
 
-    def get_pos(self) -> Vector:
+    def get_pos(self) -> Tuple[int, int]:
         return self.pos
 
-    def get_size(self) -> Vector:
+    def get_size(self) -> Tuple[int, int]:
         return self.size
 
     def get_border_color(self) -> Color:
@@ -140,7 +140,7 @@ class Finish(Rect):
 
 class Platform(Rect):
 
-    def __init__(self, world: 'World', pos: Vector, size: Vector,
+    def __init__(self, world: 'World', pos: Tuple[int, int], size: Tuple[int, int],
                  color: Color = Color(200, 200, 200), fill: bool = False):
         super().__init__(world)
 
@@ -149,10 +149,10 @@ class Platform(Rect):
         self.color = color
         self.fill = fill
 
-    def get_pos(self) -> Vector:
+    def get_pos(self) -> Tuple[int, int]:
         return self.pos
 
-    def get_size(self) -> Vector:
+    def get_size(self) -> Tuple[int, int]:
         return self.size
 
     def get_border_color(self) -> Color:
@@ -211,7 +211,7 @@ class Player(Renderable):
         elif key == Key.KEY_D:
             self.vel.x = PLAYER_VELOCITY[0]
 
-    def on_key_up(self, key: Key):
+    def on_key_up(self, key: int):
         if key == Key.SPACE:
             self.jumping = False
 

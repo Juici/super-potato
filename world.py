@@ -33,12 +33,12 @@ class World(WindowHandler):
 
     def on_key_up(self, key: int):
         self.player.on_key_up(key)
-    
+
     def _init_levels(self) -> List[Level]:
         levels: List[Level] = []
 
         level1 = Level(1, Vector(100, 100))
-        level1.add_item(Platform(self, Vector(5, 9), Vector(1, 4)))
+        level1.add_item(Platform(self, (1, 1), (4, 1)))
         levels.append(level1)
-        
+
         return levels
