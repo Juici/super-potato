@@ -38,23 +38,23 @@ class StartMenu(WindowHandler):
 
         # Template to create new button
         start_btn = Button(window,
-                           'Start',
+                           '[ Start ]',
                            Vector(win_center[0] - button_size[0] / 2,
                                   win_center[1] - button_size[1]),
                            Vector(*button_size),
-                           Color(255, 0, 0), Color(0, 255, 0),
-                           Color(0, 255, 0), Color(255, 0, 0),
+                           Color(0, 102, 255), Color(255, 255, 255),
+                           Color(0, 80, 230), Color(255, 255, 255),
                            font=button_font)
         start_btn.set_click_handler(self.start)
         self.children.append(start_btn)
 
         help_btn = Button(window,
-                          'Help',
+                          '[ Help ]',
                           Vector(win_center[0] - button_size[0] / 2,
                                  win_center[1] + button_size[1]),
                           Vector(*button_size),
-                          Color(255, 0, 0), Color(0, 255, 0),
-                          Color(0, 255, 0), Color(255, 0, 0),
+                           Color(0, 102, 255), Color(255, 255, 255),
+                           Color(0, 80, 230), Color(255, 255, 255),
                           font=button_font)
         help_btn.set_click_handler(self.help)
         self.children.append(help_btn)
