@@ -11,7 +11,7 @@ BUTTON_SIZE = Vector(200, 50)
 
 BG_IMAGE = simplegui.load_image('https://d2v9y0dukr6mq2.cloudfront.net/video/thumbnail/0kjHIH6/old-retro-video-game-arcade-clouds-moving-on-a-blue-sky_hcd0pxim__F0000.png')
 
-class GameOver(WindowHandler):
+class GameOver(WindowHandler, Score):
 
     def btn1_on_click(self, btn: Button, pos: Vector):
         from startmenu import StartMenu
@@ -37,13 +37,18 @@ class GameOver(WindowHandler):
 
         canvas.draw_text('Game Over', (window_size[0] / 2.3, 80), 28, 'Black')
 
-        new_score = 1
-        high_score = 0
+        object1 = Score()
+        new_score = object1.get_score()
+        high_score = object1.get_high_score()
         if new_score > high_score:
             canvas.draw_text('New high score', (window_size[0] / 2.4, 180), 28, 'Black')
             print_score = str(new_score)
             canvas.draw_text(print_score, (window_size[0] / 2, 210), 28, 'Black')
         if high_score > new_score:
             canvas.draw_text('You have not beaten your high score', (window_size[0] / 3.2, 180), 28, 'Black')
+            print_score = str(high_score)
+            canvas.draw_text(print_score, (window_size[0] / 2, 210), 28, 'Black')
+        if new_score == high_score:
+            canvas.draw_text('You have matched your high score', (window_size[0] / 3.2, 180), 28, 'Black')
             print_score = str(high_score)
             canvas.draw_text(print_score, (window_size[0] / 2, 210), 28, 'Black')
