@@ -23,10 +23,10 @@ class World(WindowHandler):
 
     def render(self, canvas: simplegui.Canvas):
         # Shouldn't be None here.
-        self.level.render(self, canvas)
-
         if self.level is None:
             pass  # TODO: finish logic
+
+        self.level.render(self, canvas)
 
     def on_key_down(self, key: int):
         self.player.on_key_down(key)
@@ -38,7 +38,7 @@ class World(WindowHandler):
         levels: List[Level] = []
 
         level1 = Level(1, Vector(100, 100))
+        level1.add_item(Platform(self, Vector(5, 9), Vector(1, 4)))
         levels.append(level1)
-
-
+        
         return levels
