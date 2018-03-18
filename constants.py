@@ -1,5 +1,4 @@
 from enum import IntEnum
-from sys import argv
 
 __all__ = [
     'GAME_NAME',
@@ -17,27 +16,37 @@ __all__ = [
     'Key'
 ]
 
+_DPI_SCALE_OPTION = 'dpi-scale'
+
 
 def _get_hidpi_factor() -> float:
+    from sys import argv
+
     for arg in argv:
         flag = str(arg).lower()
 
-        if flag.startswith('--dpi-scale='):
+        dpi_scale_opt = '--{0}='.format(_DPI_SCALE_OPTION)
+        if flag.startswith(dpi_scale_opt):
             try:
-                return float(flag[12:])
+                return float(flag[len(dpi_scale_opt):])
             except ArithmeticError:
                 break
+
     return 1.0
 
 
+GRID_SIZE = (32, 18)
+
 GAME_NAME = "Super Potato"  # Game name and title of window.
-WINDOW_SIZE = (1280, 800)  # The default window size.
+WINDOW_SIZE = (GRID_SIZE[0] * 50, GRID_SIZE[1] * 50)  # The default window size.
+
+BLOCK_SIZE = WINDOW_SIZE[0] / GRID_SIZE[0]
 
 FULLSCREEN = False  # Display fullscreen.
 
 HIDPI_FACTOR = _get_hidpi_factor()  # HiDPI screen scale factor.
 
-PLAYER_SIZE = (32, 64)
+PLAYER_SIZE = (BLOCK_SIZE, BLOCK_SIZE * 2)
 PLAYER_VELOCITY = (2.8, 10)  # (run, jump)
 ACCEL_GRAVITY = -0.2
 # PLAYER_VELOCITY_DIVISOR = 1.05
@@ -45,13 +54,13 @@ ACCEL_GRAVITY = -0.2
 BUTTON_SIZE = (200, 50)
 
 LEVEL_BACKGROUND_IMAGE = 'assets/background.png'
+
 # LEVEL_BACKGROUND_DIMS = (1920, 1080)
 # LEVEL_BACKGROUND_STRETCH_X = 1200
 
-GRID_SIZE = (16, 10)
-BLOCK_SIZE = WINDOW_SIZE[0] / GRID_SIZE[0]
-
 ACCEL_JUMP = 2
+
+
 # LEVEL_BLOCK_SCALE_PX = (WINDOW_SIZE[0] / LEVEL_GRID[0], WINDOW_SIZE[1] / LEVEL_GRID[1])
 
 

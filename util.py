@@ -13,9 +13,13 @@ def load_image(path: str) -> simplegui.Image:
     if path.startswith('http'):
         return simplegui.load_image(path)
     else:
-        # noinspection PyProtectedMember
-        return simplegui._load_local_image(path)
+        import os
 
+        if os.path.isfile(path):
+            # noinspection PyProtectedMember
+            return simplegui._load_local_image(path)
+        else:
+            raise ValueError('No file exists at path {0}'.format(path))
 
 
 class Color(object):
@@ -27,7 +31,7 @@ class Color(object):
         self.a = max(0.0, min(a, 1.0))
 
     def __str__(self):
-        return 'rgba(%d,%d,%d,%d)' % (self.r, self.g, self.b, self.a)
+        return 'rgba({0:d},{1:d},{2:d},{3:f})'.format(self.r, self.g, self.b, self.a)
 
 
 class Font(object):
