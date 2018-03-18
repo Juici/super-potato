@@ -2,7 +2,7 @@ import math
 import simplegui
 
 from typing import TYPE_CHECKING, Tuple
-from constants import PLAYER_SIZE, PLAYER_VELOCITY, ACCEL_GRAVITY, BLOCK_SIZE, GRID_SIZE, Key
+from constants import PLAYER_SIZE, PLAYER_VELOCITY, ACCEL_GRAVITY, ACCEL_JUMP, BLOCK_SIZE, GRID_SIZE, Key
 from util import Color
 from geom import Vector, BoundingBox
 from window import Renderable
@@ -188,9 +188,9 @@ class Player(Renderable):
 
         self.score = 0
 
-    def jump(self):
-        self.vel.y = PLAYER_VELOCITY[1]
-        self.accel.y = ACCEL_GRAVITY[1]
+    #def jump(self):
+    #    self.vel.y = PLAYER_VELOCITY[1]
+    #    self.accel.y = ACCEL_GRAVITY[1]
 
     def get_bounds(self) -> BoundingBox:
         dpi_factor = self.window.hidpi_factor
@@ -203,9 +203,6 @@ class Player(Renderable):
     def on_key_down(self, key: int):
         if key == Key.SPACE:
             self.jumping = True  # Allow holding jump button.
-
-            if self.on_ground:
-                self.jump()
 
         elif key == Key.KEY_A:
             self.vel.x = -PLAYER_VELOCITY[0]
@@ -251,8 +248,14 @@ class Player(Renderable):
                     self.colliding_with = item
                     did_collide = True
 
-        # Do gravity
-        if did_collide and isinstance(self.colliding_with, Platform):
+        on_ground = did_collide and isinstance(self.colliding_with, Platform)
+        self.on_ground = on_ground
+
+        # Do gravity and platform collision
+        if self.jumping and on_ground:
+            self.accel.y = -ACCEL_JUMP
+            self.on_ground = False
+        elif on_ground:
             hit_pos = self.colliding_with.get_bounds().min
             self.accel.y = 0
             self.vel.y = 0
