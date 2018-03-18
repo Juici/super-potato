@@ -52,7 +52,7 @@ class Level(object):
         return self.score
 
     def get_high_score(self):
-        return high_score
+        return self.high_score
 
     def set_score(self, score: int):
         self.score = score
