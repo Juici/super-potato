@@ -50,7 +50,7 @@ class Level(object):
         self.finished = True
 
     def get_score(self):
-        return score
+        return self.score
 
     def set_score(self, score: int):
         self.score = score
