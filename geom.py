@@ -6,37 +6,6 @@ from numbers import Real
 __all__ = ['Vector', 'Polygon', 'on_segment', 'orientation', 'lines_intersect']
 
 
-class CollisionBox(object):
-
-    def get_vertices(self) -> Tuple:
-        return (
-            self.pos, # Top left
-            self.pos + self.size.x_vec(), # Top  right
-            self.pos + self.size, # Bottom right
-            self.pos + self.size.y_vec() # Bottom left
-        )
-
-    def is_colliding(self, box: 'CollisionBox') -> bool:
-        pos = self.pos
-        size = self.size
-        other_pos = other.pos
-        other_size = other.size
-        return (
-            pos.x + size.width > other_pos.x and
-            pos.x < other_pos.x + other_size.width and
-            size.height + pos.y > other_pos.y and
-            pos.y < other_pos.y + other_size.height
-        )
-
-    def update(self):
-        self.position = self.subject.get_pos()
-        self.size = self.subject.get_size()
-
-    def __init__(self, subject: 'Renderable'):
-        self.subject = subject
-        self.update()
-
-
 
 class Vector(object):
     """
@@ -264,13 +233,13 @@ class Vector(object):
         """
         Returns (x, 0)
         """
-        return Vector(0, y)
+        return Vector(self.x, 0)
 
     def y_vec(self) -> 'Vector':
         """
         Returns (0, y)
         """
-        return Vector(self.x, 0)
+        return Vector(0, self.y)
 
 
     # Equality
@@ -341,6 +310,50 @@ class Vector(object):
         """
         return float(self.x), float(self.y)
 
+
+class BoundingBox(object):
+    """
+    Represents a bounding area in the form of a rectangle.
+    """
+
+    def __init__(self, min: Vector, max: Vector):
+        self.min = min
+        self.max = max
+
+    def __iter__(self):
+        yield Vector(self.min.x, self.min.y)
+        yield Vector(self.max.x, self.min.y)
+        yield Vector(self.max.x, self.max.y)
+        yield Vector(self.min.x, self.max.y)
+
+    def vertices(self) -> Tuple[Vector, Vector, Vector, Vector]:
+        """
+        Returns the corners of the bounding box.
+        """
+        return tuple(self)
+
+    def contains(self, p: Vector) -> bool:
+        """
+        Returns `true` if the vector `p` is inside the bounding box.
+        """
+        return self.min.x <= p.x <= self.max.x and self.min.y <= p.y <= self.max.y
+    
+    def collides(self, other: 'BoundingBox') -> bool:
+        """
+        Returns `true` if this bounding box collides with the other bounding box.
+        """
+        return (
+                self.min.x <= other.max.x and
+                self.max.x >= other.min.x and
+                self.min.y <= other.max.y and
+                self.max.y >= other.min.y
+        )
+
+    def into_point_list(self) -> List[Tuple[float, float]]:
+        """
+        Returns the bounding box as point list.
+        """
+        return [p.into_tuple() for p in self]
 
 class Polygon(object):
     """
