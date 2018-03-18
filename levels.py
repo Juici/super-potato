@@ -3,9 +3,8 @@ import simplegui
 from typing import List, TYPE_CHECKING
 from geom import Vector
 from level_items import LevelItem
-from constants import LEVEL_BACKGROUND_IMAGE, LEVEL_BACKGROUND_DIMS, LEVEL_BACKGROUND_STRETCH_X, WINDOW_SIZE
+from constants import LEVEL_BACKGROUND_IMAGE, WINDOW_SIZE
 from util import load_image
-from score import Score
 
 # Work around cyclic imports.
 if TYPE_CHECKING:
@@ -29,13 +28,12 @@ class Level(object):
         self.items: List[LevelItem] = []
         self.finished = False
 
-        # Just some initialisation stuff here; less to compute later
-        self.background_offset = LEVEL_BACKGROUND_STRETCH_X / 2
-        self.background_image = load_image(LEVEL_BACKGROUND_IMAGE)
-        self.bg_size = (self.background_image.get_width(), self.background_image.get_height())
-        self.bg_center = (self.bg_size[0] / 2, self.bg_size[1] / 2)
-        self.half_window_height = WINDOW_SIZE[1] / 2
-        self.score = 0
+        # Just some initialisation stuff here; less to compute later.
+        # self.background_offset = LEVEL_BACKGROUND_STRETCH_X / 2
+        # self.background_image = load_image(LEVEL_BACKGROUND_IMAGE)
+        # self.bg_size = (self.background_image.get_width(), self.background_image.get_height())
+        # self.bg_center = (self.bg_size[0] / 2, self.bg_size[1] / 2)
+        # self.half_window_height = WINDOW_SIZE[1] / 2
 
     def add_item(self, item: LevelItem):
         """
@@ -56,21 +54,23 @@ class Level(object):
 
         # Draw background
 
-        window_center_first = (
-            -(self.offset.x % LEVEL_BACKGROUND_STRETCH_X) + self.background_offset,
-            self.half_window_height
-        )
-        window_center_next =  (
-            window_center_first[0] + LEVEL_BACKGROUND_STRETCH_X,
-            window_center_first[1]
-        )
-        real_size = (LEVEL_BACKGROUND_STRETCH_X, WINDOW_SIZE[1])
+        # window_center_first = (
+        #     -(self.offset.x % LEVEL_BACKGROUND_STRETCH_X) + self.background_offset,
+        #     self.half_window_height
+        # )
+        # window_center_next = (
+        #     window_center_first[0] + LEVEL_BACKGROUND_STRETCH_X,
+        #     window_center_first[1]
+        # )
+        # real_size = (LEVEL_BACKGROUND_STRETCH_X, WINDOW_SIZE[1])
+        #
+        # canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_first,
+        #                   real_size)
+        # canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_next,
+        #                   real_size)
 
-        canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_first, real_size)
-        canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_next, real_size)
-
-        self.score = self.score + 1
-        canvas.draw_text("SCORE: " + str(self.score), (750, 40), 40, "White")
+        world.player.score += 1
+        canvas.draw_text("SCORE: " + str(world.player.score), (750, 40), 40, "White")
 
         # Render items
         for item in self.items:
@@ -84,7 +84,7 @@ class Level(object):
 
         # Load next level.
         if self.finished:
-            levels = self.world.levels
+            levels = world.levels
 
             next_level = self.level + 1
             if len(levels) >= next_level:

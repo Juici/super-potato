@@ -3,8 +3,7 @@ import math
 from typing import Tuple, List, Any
 from numbers import Real
 
-__all__ = ['Vector', 'Polygon', 'on_segment', 'orientation', 'lines_intersect']
-
+__all__ = ['Vector', 'BoundingBox', 'on_segment', 'orientation', 'lines_intersect']
 
 
 class Vector(object):
@@ -227,21 +226,6 @@ class Vector(object):
         """
         return Vector(self.x, self.y)
 
-    # Stripping
-
-    def x_vec(self) -> 'Vector':
-        """
-        Returns (x, 0)
-        """
-        return Vector(self.x, 0)
-
-    def y_vec(self) -> 'Vector':
-        """
-        Returns (0, y)
-        """
-        return Vector(0, self.y)
-
-
     # Equality
 
     def __eq__(self, other: Any) -> bool:
@@ -337,7 +321,7 @@ class BoundingBox(object):
         Returns `true` if the vector `p` is inside the bounding box.
         """
         return self.min.x <= p.x <= self.max.x and self.min.y <= p.y <= self.max.y
-    
+
     def collides(self, other: 'BoundingBox') -> bool:
         """
         Returns `true` if this bounding box collides with the other bounding box.
@@ -354,56 +338,6 @@ class BoundingBox(object):
         Returns the bounding box as point list.
         """
         return [p.into_tuple() for p in self]
-
-class Polygon(object):
-    """
-    Represents a bounding area in the form of a polygon.
-    """
-
-    def __init__(self, *points: Vector):
-        """
-        Constructs a polygon from a list of Vectors.
-        """
-        self.points = list(points)
-
-    def __getitem__(self, item: int) -> Vector:
-        return self.points[item]
-
-    def __setitem__(self, key: int, value: Vector):
-        self.points[key] = value
-
-    def __len__(self):
-        return len(self.points)
-
-    def __iter__(self):
-        yield from self.points
-
-    def contains(self, p: Vector) -> bool:
-        """
-        Returns `true` if the vector `p` is inside the polygon.
-        """
-        n = len(self.points)
-
-        i = 0
-        j = n - 1
-        c = False
-
-        while i < n:
-            if ((self.points[i].y > p.y) != (self.points[j].y > p.y)) and (
-                    p.x < (self.points[j].x - self.points[i].x) * (p.y - self.points[i].y) / (
-                    self.points[j].y - self.points[i].y) + self.points[i].x):
-                c = not c
-
-            j = i
-            i += 1
-
-        return c
-
-    def into_point_list(self) -> List[Tuple[float, float]]:
-        """
-        Returns the polygon as point list.
-        """
-        return [p.into_tuple() for p in self.points]
 
 
 def on_segment(l: Tuple[Vector, Vector], p: Vector) -> bool:

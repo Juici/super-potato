@@ -4,7 +4,7 @@ import simplegui
 from typing import List, Tuple
 
 from constants import HIDPI_FACTOR
-from geom import Vector, Polygon
+from geom import Vector, BoundingBox
 
 __all__ = ['Window', 'Renderable', 'RenderableParent', 'WindowHandler']
 
@@ -266,7 +266,7 @@ class Renderable(object):
         self.window = window
         self.parent: 'RenderableParent' = None
 
-    def get_bounds(self) -> Polygon:
+    def get_bounds(self) -> BoundingBox:
         """
         The bounds of the rendered object.
         Used to handle mouse events.
@@ -345,7 +345,7 @@ class RenderableParent(Renderable):
         for child in self.children:
             child.render(canvas)
 
-    def get_bounds(self) -> Polygon:
+    def get_bounds(self) -> BoundingBox:
         raise NotImplementedError
 
     def on_click(self, pos: Vector):
@@ -416,9 +416,9 @@ class WindowHandler(RenderableParent):
         """
         super().render(canvas)
 
-    def get_bounds(self) -> Polygon:
+    def get_bounds(self) -> BoundingBox:
         size = self.window.get_size()
-        return Polygon(
+        return BoundingBox(
             Vector(0, 0),
             Vector(size[0], 0),
             Vector(size[0], size[1]),

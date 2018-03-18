@@ -1,11 +1,11 @@
+import math
 import simplegui
 
-from typing import TYPE_CHECKING
-from constants import PLAYER_SIZE, PLAYER_VELOCITY, PLAYER_ACCELERATION, PLAYER_VELOCITY_DIVISOR, LEVEL_BLOCK_SCALE_PX, Key
+from typing import TYPE_CHECKING, Tuple
+from constants import PLAYER_SIZE, PLAYER_VELOCITY, ACCEL_GRAVITY, BLOCK_SIZE, GRID_SIZE, Key
 from util import Color
-from geom import Vector, Polygon, BoundingBox
+from geom import Vector, BoundingBox
 from window import Renderable
-from math import floor
 
 # Work around cyclic imports.
 if TYPE_CHECKING:
@@ -13,26 +13,21 @@ if TYPE_CHECKING:
 
 __all__ = ['LevelItem', 'Rect', 'Trap', 'Finish', 'Platform', 'Player']
 
-def get_scaled_space(vec: Vector) -> Vector:
-    return Vector(floor(vec.x * LEVEL_BLOCK_SCALE_PX[0]),
-                  floor(vec.y * LEVEL_BLOCK_SCALE_PX[1]))
-
 
 class LevelItem(Renderable):
 
     def __init__(self, world: 'World'):
         super().__init__(world.window)
         self.world = world
-        self.bounds = BoundingBox(Vector(0, 0), Vector(0, 0))
 
     def get_bounds(self) -> BoundingBox:
-        return self.bounds
+        raise NotImplementedError
 
     def on_collide(self, player: 'Player'):
         pass
 
-    def collides_with(self, other: BoundingBox) -> bool:
-        return self.get_bounds().collides(other)
+    def collides_with(self, box: BoundingBox) -> bool:
+        return self.get_bounds().collides(box)
 
 
 class Rect(LevelItem):
@@ -44,26 +39,11 @@ class Rect(LevelItem):
     def __init__(self, world: 'World'):
         super().__init__(world)
 
-    def get_pos(self) -> Vector:
-        """
-        Returns the position of the rectangle in the world.
-        """
+    def get_pos(self) -> Tuple[int, int]:
         raise NotImplementedError
 
-    def get_size(self) -> Vector:
-        """
-        Returns the size of the rectangle.
-        """
-        raise NotImplementedError
-
-    def get_render_pos(self) -> Vector:
-        """
-        Returns the render position of the rectangle.
-        """
-        pos = self.get_pos()
-        offset = self.world.level.offset
-
-        return pos - offset
+    def get_size(self) -> Tuple[int, int]:
+        return 1, 1
 
     def get_border_width(self) -> int:
         """
@@ -84,10 +64,9 @@ class Rect(LevelItem):
         return Color(0, 0, 0)
 
     def render(self, canvas: simplegui.Canvas):
-        self.bounds.min = self.get_pos()
-        self.bounds.max = self.bounds.min + self.get_size()
+        bounds = self.get_bounds()
 
-        point_list = self.bounds.into_point_list()
+        point_list = bounds.into_point_list()
         border_width = self.get_border_width()
         border_color = str(self.get_border_color())
         fill_color = str(self.get_fill_color())
@@ -95,7 +74,24 @@ class Rect(LevelItem):
         canvas.draw_polygon(point_list, border_width, border_color, fill_color)
 
     def get_bounds(self) -> BoundingBox:
-        return self.bounds
+        dpi_factor = self.window.hidpi_factor
+
+        pos = self.get_pos()
+        size = self.get_size()
+
+        pos = Vector(
+            pos[0] * BLOCK_SIZE,
+            GRID_SIZE[1] - pos[1] * BLOCK_SIZE,
+        )
+        size = Vector(
+            size[0] * BLOCK_SIZE,
+            size[1] * BLOCK_SIZE,
+        )
+
+        pos = (pos - self.world.level.offset) * dpi_factor
+        size = size * dpi_factor
+
+        return BoundingBox(pos, pos + size)
 
 
 class Trap(Rect):
@@ -103,8 +99,8 @@ class Trap(Rect):
     def __init__(self, world: 'World', pos: Vector, size: Vector):
         super().__init__(world)
 
-        self.pos = get_scaled_space(pos)
-        self.size = get_scaled_space(size)
+        self.pos = pos
+        self.size = size
         self.color = Color(150, 40, 40)
 
     def get_pos(self) -> Vector:
@@ -125,8 +121,8 @@ class Finish(Rect):
     def __init__(self, world: 'World', pos: Vector, size: Vector):
         super().__init__(world)
 
-        self.pos = get_scaled_space(pos)
-        self.size = get_scaled_space(size)
+        self.pos = pos
+        self.size = size
         self.color = Color(40, 200, 40)
 
     def get_pos(self) -> Vector:
@@ -148,8 +144,8 @@ class Platform(Rect):
                  color: Color = Color(200, 200, 200), fill: bool = False):
         super().__init__(world)
 
-        self.pos = get_scaled_space(pos)
-        self.size = get_scaled_space(size)
+        self.pos = pos
+        self.size = size
         self.color = color
         self.fill = fill
 
@@ -187,20 +183,20 @@ class Player(Renderable):
         self.on_ground = False
         self.jumping = False
         self.moving_x = False
-        self.bounds = BoundingBox(Vector(0, 0), self.size)
+
+        self.score = 0
 
     def jump(self):
         self.vel.y = PLAYER_VELOCITY[1]
-        self.accel.y = PLAYER_ACCELERATION[1]
-
-    def get_pos(self):
-        return self.pos
-
-    def get_size(self):
-        return self.size
+        self.accel.y = ACCEL_GRAVITY[1]
 
     def get_bounds(self) -> BoundingBox:
-        return self.bounds
+        dpi_factor = self.window.hidpi_factor
+
+        pos = self.pos * dpi_factor
+        size = self.size * dpi_factor
+
+        return BoundingBox(pos, pos + size)
 
     def on_key_down(self, key: int):
         if key == Key.SPACE:
@@ -210,27 +206,25 @@ class Player(Renderable):
                 self.jump()
 
         elif key == Key.KEY_A:
-            self.accel.x = -PLAYER_ACCELERATION[0]
+            self.vel.x = -PLAYER_VELOCITY[0]
 
         elif key == Key.KEY_D:
-            self.accel.x = PLAYER_ACCELERATION[0]
+            self.vel.x = PLAYER_VELOCITY[0]
 
     def on_key_up(self, key: Key):
         if key == Key.SPACE:
             self.jumping = False
 
         elif key == Key.KEY_A:
-            if self.accel.x < 0:
-                self.accel.x = 0
+            if self.vel.x < 0:
+                self.vel.x = 0
 
         elif key == Key.KEY_D:
-            if self.accel.x > 0:
-                self.accel.x = 0
+            if self.vel.x > 0:
+                self.vel.x = 0
 
     def render(self, canvas: simplegui.Canvas):
         bounds = self.get_bounds()
-        bounds.min = self.get_pos()
-        bounds.max = bounds.min + self.get_size()
 
         # Draw player.
         point_list = bounds.into_point_list()
@@ -243,13 +237,8 @@ class Player(Renderable):
         self.pos.add(self.vel)
         self.vel.add(self.accel)
 
-        vel_mag_x = abs(self.vel.x)
-        if vel_mag_x > PLAYER_VELOCITY[0]:
-            sign = self.vel.x / vel_mag_x
-            self.vel.x = sign * PLAYER_VELOCITY[0]
-
-        if self.accel.x == 0:
-            self.vel.x /= PLAYER_VELOCITY_DIVISOR
+        if abs(self.vel.x) > PLAYER_VELOCITY[0]:
+            self.vel.x = math.copysign(PLAYER_VELOCITY[0], self.vel.x)
 
         # Check collisions position.
         for item in self.world.level.items:

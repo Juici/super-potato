@@ -3,7 +3,7 @@ import simplegui
 from typing import Callable
 from constants import HIDPI_FACTOR
 from util import Color, Font
-from geom import Vector, Polygon
+from geom import Vector, BoundingBox
 from window import Window, Renderable
 
 __all__ = ['Button']
@@ -43,14 +43,9 @@ class Button(Renderable):
         )
 
         # Get corners
-        self.bounds = Polygon(
-            Vector(pos.x, pos.y),
-            Vector(pos.x + size.x, pos.y),
-            Vector(pos.x + size.x, pos.y + size.y),
-            Vector(pos.x, pos.y + size.y)
-        )
+        self.bounds = BoundingBox(pos, pos + size)
 
-    def get_bounds(self) -> Polygon:
+    def get_bounds(self) -> BoundingBox:
         return self.bounds
 
     def render(self, canvas: simplegui.Canvas):
