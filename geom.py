@@ -6,6 +6,38 @@ from numbers import Real
 __all__ = ['Vector', 'Polygon', 'on_segment', 'orientation', 'lines_intersect']
 
 
+class CollisionBox(object):
+
+    def get_vertices(self) -> Tuple:
+        return (
+            self.pos, # Top left
+            self.pos + self.size.x_vec(), # Top  right
+            self.pos + self.size, # Bottom right
+            self.pos + self.size.y_vec() # Bottom left
+        )
+
+    def is_colliding(self, box: 'CollisionBox') -> bool:
+        pos = self.pos
+        size = self.size
+        other_pos = other.pos
+        other_size = other.size
+        return (
+            pos.x + size.width > other_pos.x and
+            pos.x < other_pos.x + other_size.width and
+            size.height + pos.y > other_pos.y and
+            pos.y < other_pos.y + other_size.height
+        )
+
+    def update(self):
+        self.position = self.subject.get_pos()
+        self.size = self.subject.get_size()
+
+    def __init__(self, subject: 'Renderable'):
+        self.subject = subject
+        self.update()
+
+
+
 class Vector(object):
     """
     A vector in 2d space, with real x and y components.
@@ -225,6 +257,21 @@ class Vector(object):
         Creates a copy of the vector.
         """
         return Vector(self.x, self.y)
+
+    # Stripping
+
+    def x_vec(self) -> 'Vector':
+        """
+        Returns (x, 0)
+        """
+        return Vector(0, y)
+
+    def y_vec(self) -> 'Vector':
+        """
+        Returns (0, y)
+        """
+        return Vector(self.x, 0)
+
 
     # Equality
 
