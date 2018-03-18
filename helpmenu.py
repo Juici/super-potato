@@ -32,12 +32,12 @@ class HelpMenu(WindowHandler):
         self.bg_image = util.load_image('assets/background.png')
 
         back_btn = Button(window,
-                          'Back',
+                          '[ Back ]',
                           Vector(window_center[0] - button_size[0] / 2,
                                  window_size[1] * 2 / 3),
                           Vector(*button_size),
-                          Color(255, 0, 0), Color(0, 255, 0),
-                          Color(0, 255, 0), Color(255, 0, 0),
+                          Color(0, 102, 255), Color(255, 255, 255),
+                          Color(0, 80, 230), Color(255, 255, 255),
                           font=button_font)
         back_btn.set_click_handler(self.back)
         self.children.append(back_btn)
