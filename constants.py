@@ -38,7 +38,7 @@ HIDPI_FACTOR = _get_hidpi_factor()  # HiDPI screen scale factor.
 
 PLAYER_SIZE = (32, 64)
 PLAYER_VELOCITY = (2.8, 10)  # (run, jump)
-ACCEL_GRAVITY = -10
+ACCEL_GRAVITY = -0.2
 # PLAYER_VELOCITY_DIVISOR = 1.05
 
 BUTTON_SIZE = (200, 50)
