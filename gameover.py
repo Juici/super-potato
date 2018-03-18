@@ -6,6 +6,7 @@ from vector import Vector
 from startmenu import StartMenu
 from constants import FULLSCREEN, GAME_NAME, WINDOW_SIZE
 from Score import Score
+from level import Level
 
 BUTTON_SIZE = Vector(200, 50)
 
@@ -37,7 +38,7 @@ class GameOver(WindowHandler, Score):
 
         canvas.draw_text('Game Over', (window_size[0] / 2.3, 80), 28, 'Black')
 
-        object1 = Score()
+        object1 = Level()
         new_score = object1.get_score()
         high_score = object1.get_high_score()
         if new_score > high_score:
