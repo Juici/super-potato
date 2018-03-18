@@ -49,6 +49,12 @@ class Level(object):
         """
         self.finished = True
 
+    def get_score(self):
+        return score
+
+    def set_score(self, score: int):
+        self.score = score
+
     def render(self, world: 'World', canvas: simplegui.Canvas):
         """
         Called on every game tick to render the level.
