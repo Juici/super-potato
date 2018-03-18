@@ -333,6 +333,12 @@ class BoundingBox(object):
                 self.max.y >= other.min.y
         )
 
+    def collides_top_bottom(self, other: 'BoundingBox'):
+        return self.min.y <= other.max.y and self.max.y >= other.min.y
+    
+    def collides_left_right(self, other: 'BoundingBox'):
+        return self.min.x <= other.max.x and self.max.x >= other.min.x
+    
     def into_point_list(self) -> List[Tuple[float, float]]:
         """
         Returns the bounding box as point list.
