@@ -43,6 +43,9 @@ BUTTON_SIZE = (200, 50)
 LEVEL_BACKGROUND_IMAGE = 'assets/background.png'
 LEVEL_BACKGROUND_DIMS = (1920, 1080)
 LEVEL_BACKGROUND_STRETCH_X = 1200
+LEVEL_GRID_DIMS = (12, 24)
+LEVEL_BLOCK_SCALE_PX = (WINDOW_SIZE[0] / LEVEL_GRID_DIMS[0],
+                        WINDOW_SIZE[1] / LEVEL_GRID_DIMS[1])
 
 # Better than the basic simplegui key map.
 class Key(IntEnum):
