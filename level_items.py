@@ -2,7 +2,7 @@ import math
 import simplegui
 
 from typing import TYPE_CHECKING, Tuple
-from constants import PLAYER_SIZE, PLAYER_VELOCITY, PLAYER_DEATH_VELOCITY, PLAYER_RESPAWN_X, ACCEL_GRAVITY, BLOCK_SIZE, GRID_SIZE, WINDOW_SIZE, Key
+from constants import PLAYER_SIZE, PLAYER_VELOCITY, PLAYER_DEATH_VELOCITY, PLAYER_RESPAWN_X_OFFSET, ACCEL_GRAVITY, BLOCK_SIZE, GRID_SIZE, WINDOW_SIZE, Key
 from util import Color
 from geom import Vector, BoundingBox
 from window import Renderable
@@ -189,6 +189,7 @@ class Platform(Rect):
                 # top
                 player.pos.y = bounds.min.y - player.size.y
                 player.on_ground = True
+                player.desired_platform = self
             elif bounds.min.y <= pbounds.min.y <= bounds.max.y <= pbounds.max.y:
                 # bottom
                 player.pos.y = bounds.max.y
@@ -212,6 +213,7 @@ class Player(Renderable):
         self.jumping = False
         self.moving_x = False
         self.is_dying = False
+        self.desired_platform = None
 
         self.score = 0
         self.lives = 3
@@ -267,7 +269,18 @@ class Player(Renderable):
         else:
             self.vel.x = 0
             self.vel.y = 0
-            self.pos = Vector(PLAYER_RESPAWN_X, -self.size.y)
+            if self.desired_platform is None:
+                self.pos = Vector(PLAYER_RESPAWN_X, -self.size.y)
+            else:
+                bounds = self.desired_platform.get_bounds()
+
+                if bounds.max.x <= 0:
+                    self.pos = Vector(PLAYER_RESPAWN_X, -self.size.y)
+                else:
+                    # Place player on platform they last touched
+                    self.pos = Vector(bounds.max.x - self.size.x - PLAYER_RESPAWN_X_OFFSET,
+                                      bounds.min.y - self.size.y)
+
             self.is_dying = False
 
     def render(self, canvas: simplegui.Canvas):
