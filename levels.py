@@ -5,8 +5,9 @@ from constants import GRID_SIZE, BLOCK_SIZE
 from geom import Vector
 from level_items import LevelItem
 
-from constants import LEVEL_BACKGROUND_IMAGE, WINDOW_SIZE, LEVEL_BACKGROUND_STRETCH_X
+from constants import LEVEL_BACKGROUND_IMAGE, WINDOW_SIZE, LEVEL_BACKGROUND_STRETCH_X, LEVEL_USE_BACKGROUND
 from util import load_image
+from math import floor
 
 # Work around cyclic imports.
 if TYPE_CHECKING:
@@ -28,7 +29,7 @@ class Level(object):
         self.level = level
         self.start_pos = Vector(
             start_pos[0] * BLOCK_SIZE,
-            (GRID_SIZE[1] - start_pos[1] - 1) * BLOCK_SIZE,
+            (GRID_SIZE[1] - start_pos[1] - 1) * BLOCK_SIZE
         )
 
         self.offset = Vector(0, 0)
@@ -40,11 +41,11 @@ class Level(object):
         self.counter = 0
 
         # Just some initialisation stuff here; less to compute later.
-        # self.background_offset = LEVEL_BACKGROUND_STRETCH_X / 2
-        # self.background_image = load_image(LEVEL_BACKGROUND_IMAGE)
-        # self.bg_size = (self.background_image.get_width(), self.background_image.get_height())
-        # self.bg_center = (self.bg_size[0] / 2, self.bg_size[1] / 2)
-        # self.half_window_height = WINDOW_SIZE[1] / 2
+        self.background_offset = LEVEL_BACKGROUND_STRETCH_X / 2
+        self.background_image = load_image(LEVEL_BACKGROUND_IMAGE)
+        self.bg_size = (self.background_image.get_width(), self.background_image.get_height())
+        self.bg_center = (self.bg_size[0] / 2, self.bg_size[1] / 2)
+        self.half_window_height = WINDOW_SIZE[1] / 2
 
     def add_item(self, item: LevelItem):
         """
@@ -64,20 +65,20 @@ class Level(object):
         """
 
         # Draw background
-        # window_center_first = (
-        #     -(self.offset.x % LEVEL_BACKGROUND_STRETCH_X) + self.background_offset,
-        #     self.half_window_height
-        # )
-        # window_center_next = (
-        #     window_center_first[0] + LEVEL_BACKGROUND_STRETCH_X,
-        #     window_center_first[1]
-        # )
-        # real_size = (LEVEL_BACKGROUND_STRETCH_X, WINDOW_SIZE[1])
-
-        # canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_first,
-        #                   real_size)
-        # canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_next,
-        #                   real_size)
+        if LEVEL_USE_BACKGROUND:
+            window_center_first = (
+                -(self.offset.x % LEVEL_BACKGROUND_STRETCH_X) + self.background_offset,
+                self.half_window_height
+            )
+            window_center_next = (
+                window_center_first[0] + LEVEL_BACKGROUND_STRETCH_X,
+                window_center_first[1]
+            )
+            real_size = (LEVEL_BACKGROUND_STRETCH_X, WINDOW_SIZE[1])
+            canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_first,
+                              real_size)
+            canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_next,
+                              real_size)
 
         # TODO: scale and position
         self.counter += 1
@@ -97,7 +98,9 @@ class Level(object):
 
         # Render items
         for item in self.items:
-            item.render(canvas)
+            bounds = item.get_bounds()
+            if bounds.max.x > 0 and bounds.min.x < WINDOW_SIZE[0]:
+                item.render(canvas)
 
         # Render player
         world.player.render(canvas)
@@ -111,6 +114,8 @@ class Level(object):
 
             next_level = self.level + 1
             if len(levels) >= next_level:
-                world.level = levels[next_level - 1]
+                target_level = levels[next_level - 1]
+                world.player.pos = target_level.start_pos
+                world.level = target_level
             else:
                 world.level = None

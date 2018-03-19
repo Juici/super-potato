@@ -36,6 +36,10 @@ class StartMenu(WindowHandler):
 
         self.bg_image = util.load_image('assets/background.png')
 
+        self.logo = util.load_image('assets/logo.png')
+        self.logo_size = (self.logo.get_width(), self.logo.get_height())
+        self.logo_center = (self.logo_size[0] / 2, self.logo_size[1] / 2)
+
         # Template to create new button
         start_btn = Button(window,
                            '[ Start ]',
@@ -66,6 +70,11 @@ class StartMenu(WindowHandler):
         window_size = self.window.get_size()
         window_center = (window_size[0] / 2, window_size[1] / 2)
         canvas.draw_image(self.bg_image, bg_center, bg_size, window_center, window_size)
+
+        # Draw logo
+        canvas.draw_image(self.logo, self.logo_center, self.logo_size, (window_center[0], window_center[1] - 250), (window_size[0] / 3, window_size[1] / 3))
+        #TODO: load highscore
+        #canvas.draw_text("HIGH SCORE: " + str(Level.get_score), (500, 40), 40, "White")
 
         # Draw children.
         super().render(canvas)
