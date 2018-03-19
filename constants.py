@@ -7,6 +7,7 @@ __all__ = [
     'HIDPI_FACTOR',
     'PLAYER_SIZE',
     'PLAYER_VELOCITY',
+    'PLAYER_DEATH_VELOCITY',
     'ACCEL_GRAVITY',
     'BUTTON_SIZE',
     'LEVEL_BACKGROUND_IMAGE',
@@ -47,6 +48,8 @@ HIDPI_FACTOR = _get_hidpi_factor()  # HiDPI screen scale factor.
 
 PLAYER_SIZE = (BLOCK_SIZE, BLOCK_SIZE * 2)
 PLAYER_VELOCITY = (5, 20)  # (run, jump)
+PLAYER_DEATH_VELOCITY = (10, 25)
+PLAYER_RESPAWN_X = 30
 ACCEL_GRAVITY = -1.5
 
 BUTTON_SIZE = (200, 50)
