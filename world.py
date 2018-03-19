@@ -59,8 +59,19 @@ class World(WindowHandler):
         level1.add_item(Finish(self, (40, 7), (1, 2)))
 
         level2 = Level(2, (1, 4))
-        level2.add_item(Platform(self, (0, 1), (80, 1)))
-        level2.add_item(Trap(self, (10, 2), (1, 1)))
+
+        level2.add_item(Platform(self, (0, 1), (10, 1)))
+        level2.add_item(Platform(self, (9, 3), (1, 2)))
+        level2.add_item(Platform(self, (10, 3), (7, 1)))
+        level2.add_item(Platform(self, (20, 3), (7, 1)))
+        level2.add_item(Platform(self, (30, 3), (7, 1)))
+        level2.add_item(Platform(self, (40, 4), (2, 1)))
+        level2.add_item(Platform(self, (44, 4), (2, 1)))
+        level2.add_item(Platform(self, (48, 4), (2, 1)))
+        level2.add_item(Platform(self, (52, 4), (2, 1)))
+        level2.add_item(Platform(self, (56, 4), (2, 1)))
+        level2.add_item(Trap(self, (10, 2), (48, 1)))
+        level2.add_item(Finish(self, (58, 2), (5, 1)))
 
         levels.append(level1)
         levels.append(level2)
