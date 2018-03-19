@@ -75,6 +75,27 @@ class World(WindowHandler):
         level2.add_item(Trap(self, (10, 2), (48, 1)))
         level2.add_item(Finish(self, (58, 2), (5, 1)))
 
+        level3 = Level(self, 3, (1, 4))
+
+        level3.add_item(Platform(self, (0, 1), (4, 1)))
+        level3.add_item(Platform(self, (4, 2), (1, 1)))
+        level3.add_item(Platform(self, (5, 3), (1, 1)))
+        level3.add_item(Platform(self, (6, 4), (1, 1)))
+        level3.add_item(Platform(self, (7, 5), (1, 1)))
+        level3.add_item(Platform(self, (8, 6), (1, 1)))
+        level3.add_item(Platform(self, (11, 6), (2, 1)))
+        level3.add_item(Platform(self, (15, 6), (2, 1)))
+        level3.add_item(Platform(self, (19, 6), (2, 1)))
+        level3.add_item(Platform(self, (23, 6), (2, 1)))
+        level3.add_item(Platform(self, (27, 6), (2, 1)))
+        level3.add_item(Platform(self, (31, 6), (2, 1)))
+        level3.add_item(Platform(self, (33, 6), (1, 1)))
+        level3.add_item(Platform(self, (34, 5), (1, 1)))
+        level3.add_item(Platform(self, (35, 4), (1, 1)))
+        level3.add_item(Platform(self, (36, 3), (1, 1)))
+        level3.add_item(Platform(self, (37, 2), (1, 1)))
+        level3.add_item(Finish(self, (38, 2), (4, 1)))
+
         level4 = Level(self, 3, (1, 4))
 
         level4.add_item(Platform(self, (0, 1), (10, 1)))
@@ -95,6 +116,7 @@ class World(WindowHandler):
 
         levels.append(level1)
         levels.append(level2)
+        levels.append(level3)
         levels.append(level4)
 
         return levels
