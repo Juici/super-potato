@@ -29,7 +29,8 @@ class World(WindowHandler):
     def render(self, canvas: simplegui.Canvas):
         # Shouldn't be None here.
         if self.level is None:
-            pass  # TODO: finish logic
+            self.window.handler = self.source
+            return
 
         self.level.render(self, canvas)
 
@@ -43,6 +44,7 @@ class World(WindowHandler):
         levels: List[Level] = []
 
         level1 = Level(1, (1, 4))
+
         level1.add_item(Platform(self, (1, 1), (10, 1)))
         level1.add_item(Platform(self, (6, 2), (1, 1)))
         level1.add_item(Platform(self, (14, 2), (4, 1)))
@@ -51,8 +53,16 @@ class World(WindowHandler):
         level1.add_item(Platform(self, (29, 2), (2, 1)))
         level1.add_item(Platform(self, (32, 4), (2, 1)))
         level1.add_item(Platform(self, (34, 3), (2, 1)))
-        level1.add_item(Platform(self, (36, 5), (1, 2)))
+        level1.add_item(Platform(self, (40, 5), (1, 2)))
+        level1.add_item(Platform(self, (36, 4), (4, 1)))
         level1.add_item(Trap(self, (34, 4), (2, 1)))
+        level1.add_item(Finish(self, (40, 7), (1, 2)))
+
+        level2 = Level(2, (1, 4))
+        level2.add_item(Platform(self, (0, 1), (80, 1)))
+        level2.add_item(Trap(self, (10, 2), (1, 1)))
+
         levels.append(level1)
+        levels.append(level2)
 
         return levels
