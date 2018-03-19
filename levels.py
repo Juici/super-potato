@@ -29,7 +29,7 @@ class Level(object):
         self.level = level
         self.start_pos = Vector(
             start_pos[0] * BLOCK_SIZE,
-            (GRID_SIZE[1] - start_pos[1] - 1) * BLOCK_SIZE,
+            (GRID_SIZE[1] - start_pos[1] - 1) * BLOCK_SIZE
         )
 
         self.offset = Vector(0, 0)
@@ -114,6 +114,12 @@ class Level(object):
 
             next_level = self.level + 1
             if len(levels) >= next_level:
-                world.level = levels[next_level - 1]
+                target_level = levels[next_level - 1]
+                start_pos = target_level.start_pos
+                world.player.pos = Vector(
+                    start_pos[0] * BLOCK_SIZE,
+                    (GRID_SIZE[1] - start_pos[1] - 1) * BLOCK_SIZE
+                )
+                world.level = target_level
             else:
                 world.level = None
