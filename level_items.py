@@ -2,7 +2,7 @@ import math
 import simplegui
 
 from typing import TYPE_CHECKING, Tuple
-from constants import PLAYER_SIZE, PLAYER_VELOCITY, ACCEL_GRAVITY, BLOCK_SIZE, GRID_SIZE, Key
+from constants import PLAYER_SIZE, PLAYER_VELOCITY, PLAYER_DEATH_VELOCITY, PLAYER_RESPAWN_X_OFFSET, ACCEL_GRAVITY, BLOCK_SIZE, GRID_SIZE, WINDOW_SIZE, Key
 from util import Color
 from geom import Vector, BoundingBox
 from window import Renderable
@@ -116,7 +116,10 @@ class Trap(Rect):
         return self.color
 
     def on_collide(self, player: 'Player'):
-        pass  # TODO: death logic
+        player.on_ground = False
+        player.is_dying = True
+        player.vel = Vector(math.copysign(PLAYER_DEATH_VELOCITY[0], player.vel.x),
+                            -PLAYER_DEATH_VELOCITY[1])
 
 
 class Finish(Rect):
@@ -186,6 +189,7 @@ class Platform(Rect):
                 # top
                 player.pos.y = bounds.min.y - player.size.y
                 player.on_ground = True
+                player.desired_platform = self
             elif bounds.min.y <= pbounds.min.y <= bounds.max.y <= pbounds.max.y:
                 # bottom
                 player.pos.y = bounds.max.y
@@ -201,14 +205,18 @@ class Player(Renderable):
 
         self.pos = world.level.start_pos
         self.last_pos = self.pos.copy()
+        self.last_x = 0
         self.vel = Vector(0, 0)
         self.accel = Vector(0, 0)
 
         self.on_ground = False
         self.jumping = False
         self.moving_x = False
+        self.is_dying = False
+        self.desired_platform = None
 
         self.score = 0
+        self.lives = 3
 
     def jump(self):
         self.on_ground = False
@@ -226,28 +234,54 @@ class Player(Renderable):
         return BoundingBox(bounds.min * dpi_factor, bounds.max * dpi_factor)
 
     def on_key_down(self, key: int):
-        if key == Key.SPACE:
-            self.jumping = True  # Allow holding jump button.
-            if self.on_ground:
-                self.jump()
+        if self.is_dying == False:
 
-        elif key == Key.KEY_A:
-            self.vel.x = -PLAYER_VELOCITY[0]
+            if key == Key.SPACE:
+                self.jumping = True  # Allow holding jump button.
+                if self.on_ground:
+                    self.jump()
 
-        elif key == Key.KEY_D:
-            self.vel.x = PLAYER_VELOCITY[0]
+            elif key == Key.KEY_A:
+                self.vel.x = -PLAYER_VELOCITY[0]
+
+            elif key == Key.KEY_D:
+                self.vel.x = PLAYER_VELOCITY[0]
 
     def on_key_up(self, key: int):
-        if key == Key.SPACE:
-            self.jumping = False
+        if self.is_dying == False:
 
-        elif key == Key.KEY_A:
-            if self.vel.x < 0:
-                self.vel.x = 0
+            if key == Key.SPACE:
+                self.jumping = False
 
-        elif key == Key.KEY_D:
-            if self.vel.x > 0:
-                self.vel.x = 0
+            elif key == Key.KEY_A:
+                if self.vel.x < 0:
+                    self.vel.x = 0
+
+            elif key == Key.KEY_D:
+                if self.vel.x > 0:
+                    self.vel.x = 0
+
+    def on_death(self):
+        self.lives -= 1
+
+        if self.lives == 0:
+            self.world.window.handler = self.world.source
+        else:
+            self.vel.x = 0
+            self.vel.y = 0
+            if self.desired_platform is None:
+                self.pos = Vector(PLAYER_RESPAWN_X, -self.size.y)
+            else:
+                bounds = self.desired_platform.get_bounds()
+
+                if bounds.max.x <= 0:
+                    self.pos = Vector(PLAYER_RESPAWN_X, -self.size.y)
+                else:
+                    # Place player on platform they last touched
+                    self.pos = Vector(bounds.max.x - self.size.x - PLAYER_RESPAWN_X_OFFSET,
+                                      bounds.min.y - self.size.y)
+
+            self.is_dying = False
 
     def render(self, canvas: simplegui.Canvas):
         bounds = self.get_bounds()
@@ -270,9 +304,10 @@ class Player(Renderable):
         self.on_ground = False
 
         bounds = self.get_bounds()
-        for item in self.world.level.items:
-            if item.collides_with(bounds):
-                item.on_collide(self)
+        if self.is_dying == False:
+            for item in self.world.level.items:
+                if item.collides_with(bounds):
+                    item.on_collide(self)
 
         self.vel.add(self.accel)
 
@@ -282,3 +317,6 @@ class Player(Renderable):
             self.accel.y = 0
         else:
             self.accel.y = -ACCEL_GRAVITY
+
+        if bounds.max.y >= WINDOW_SIZE[1] or bounds.min.x <= 0:
+            self.on_death()

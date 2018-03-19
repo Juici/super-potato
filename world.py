@@ -15,12 +15,13 @@ class World(WindowHandler):
     A game level.
     """
 
-    def __init__(self, window: Window):
+    def __init__(self, window: Window, source: WindowHandler):
         super().__init__(window)
         self.levels = self._init_levels()
         self.level = self.levels[0]
         self.player = Player(self)
         self.window = window
+        self.source = source
 
         self.score_font = Font('monospace', 16, window.hidpi_factor)
         self.score_font_color = Color(255, 255, 255)
