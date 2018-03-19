@@ -3,7 +3,6 @@ import simplegui
 from typing import List
 from window import Window, WindowHandler
 from levels import Level
-from geom import Vector
 from level_items import *
 
 __all__ = ['World']

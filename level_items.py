@@ -168,10 +168,20 @@ class Platform(Rect):
 
     def on_collide(self, player: 'Player'):
         bounds = self.get_bounds()
+
         pbounds = player.get_bounds()
 
-        if (bounds.min.x < pbounds.min.x < bounds.max.x or
-                bounds.min.x < pbounds.max.x < bounds.max.x):
+        if bounds.min.y < pbounds.max.y or bounds.max.y < pbounds.min.y:
+            if pbounds.min.x <= bounds.min.x <= pbounds.max.x <= bounds.max.x:
+                # left
+                player.pos.x = bounds.min.x - player.size.x
+            elif bounds.min.x <= pbounds.min.x <= bounds.max.x <= pbounds.max.x:
+                # right
+                player.pos.x = bounds.max.x
+
+        pbounds = player.get_bounds()
+
+        if bounds.min.x < pbounds.max.x or bounds.max.x < pbounds.min.x:
             if pbounds.min.y <= bounds.min.y <= pbounds.max.y <= bounds.max.y:
                 # top
                 player.pos.y = bounds.min.y - player.size.y
@@ -179,15 +189,6 @@ class Platform(Rect):
             elif bounds.min.y <= pbounds.min.y <= bounds.max.y <= pbounds.max.y:
                 # bottom
                 player.pos.y = bounds.max.y
-
-        if (bounds.min.y < pbounds.min.y < bounds.max.y or
-                bounds.min.y < pbounds.max.y < bounds.max.y):
-            if pbounds.min.x <= bounds.min.x <= pbounds.max.x <= bounds.max.x:
-                # left
-                player.pos.x = bounds.min.x - player.size.x
-            elif bounds.min.x <= pbounds.min.x <= bounds.max.x <= pbounds.max.x:
-                # right
-                player.pos.x = bounds.max.x
 
 
 class Player(Renderable):
@@ -204,11 +205,8 @@ class Player(Renderable):
         self.accel = Vector(0, 0)
 
         self.on_ground = False
-        self.on_wall = False
         self.jumping = False
         self.moving_x = False
-
-        self.colliding_with = None
 
         self.score = 0
 
@@ -270,21 +268,17 @@ class Player(Renderable):
 
         # Check collisions position.
         self.on_ground = False
-        self.on_wall = False
 
+        bounds = self.get_bounds()
         for item in self.world.level.items:
             if item.collides_with(bounds):
                 item.on_collide(self)
 
         self.vel.add(self.accel)
 
-        # Do gravity and platform collision
+        # Do gravity and platform collision.
         if self.on_ground:
-            self.accel.y = 0
             self.vel.y = 0
+            self.accel.y = 0
         else:
             self.accel.y = -ACCEL_GRAVITY
-
-        if self.on_wall:
-            self.accel.x = 0
-            self.vel.x = 0
