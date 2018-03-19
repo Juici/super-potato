@@ -96,7 +96,7 @@ class World(WindowHandler):
         level3.add_item(Platform(self, (37, 2), (1, 1)))
         level3.add_item(Finish(self, (38, 2), (4, 1)))
 
-        level4 = Level(self, 3, (1, 4))
+        level4 = Level(self, 4, (1, 4))
 
         level4.add_item(Platform(self, (0, 1), (10, 1)))
         level4.add_item(Platform(self, (9, 3), (1, 2)))
