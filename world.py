@@ -23,8 +23,8 @@ class World(WindowHandler):
         self.player = Player(self)
         self.window = window
 
-        self.score_font = Font('monospace', 16, window.hidpi_factor)
-        self.score_font_color = Color(255, 255, 255)
+        self.text_font = Font('monospace', 16, window.hidpi_factor)
+        self.text_font_color = Color(255, 255, 255)
 
     def render(self, canvas: simplegui.Canvas):
         # Shouldn't be None here.
