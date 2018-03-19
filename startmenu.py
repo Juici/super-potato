@@ -14,7 +14,7 @@ class StartMenu(WindowHandler):
     def start(self, btn: Button, pos: Vector):
         from world import World
 
-        btn.window.handler = World(btn.window)
+        btn.window.handler = World(btn.window, self)
 
     def help(self, btn: Button, pos: Vector):
         from helpmenu import HelpMenu
