@@ -115,7 +115,11 @@ class Trap(Rect):
     def get_border_color(self) -> Color:
         return self.color
 
+    def get_fill_color(self) -> Color:
+        return self.color
+
     def on_collide(self, player: 'Player'):
+        # Perform a "hopping off" animation and disable collision
         player.on_ground = False
         player.is_dying = True
         player.vel = Vector(math.copysign(PLAYER_DEATH_VELOCITY[0], player.vel.x),
@@ -129,7 +133,7 @@ class Finish(Rect):
 
         self.pos = pos
         self.size = size
-        self.color = Color(40, 200, 40)
+        self.color = Color(0, 102, 255)
 
     def get_pos(self) -> Vector:
         return self.pos
@@ -140,20 +144,21 @@ class Finish(Rect):
     def get_border_color(self) -> Color:
         return self.color
 
+    def get_fill_color(self) -> Color:
+        return self.color
+
     def on_collide(self, player: 'Player'):
         self.world.level.finish()
 
 
 class Platform(Rect):
 
-    def __init__(self, world: 'World', pos: Tuple[int, int], size: Tuple[int, int],
-                 color: Color = Color(200, 200, 200), fill: bool = False):
+    def __init__(self, world: 'World', pos: Tuple[int, int], size: Tuple[int, int]):
         super().__init__(world)
 
         self.pos = pos
         self.size = size
-        self.color = color
-        self.fill = fill
+        self.color = Color(200, 200, 200)
 
     def get_pos(self) -> Tuple[int, int]:
         return self.pos
@@ -165,9 +170,7 @@ class Platform(Rect):
         return self.color
 
     def get_fill_color(self) -> Color:
-        if self.fill:
-            return self.color
-        return super().get_fill_color()
+        return self.color
 
     def on_collide(self, player: 'Player'):
         bounds = self.get_bounds()
