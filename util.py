@@ -15,6 +15,12 @@ def load_image(path: str) -> simplegui.Image:
     else:
         import os
 
+        if not path.startswith('/'):
+            import inspect
+
+            path_dir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
+            path = os.path.join(path_dir, path)
+
         if os.path.isfile(path):
             # noinspection PyProtectedMember
             return simplegui._load_local_image(path)
