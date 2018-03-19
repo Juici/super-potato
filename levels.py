@@ -94,11 +94,14 @@ class Level(object):
 
         dpi_factor = world.window.hidpi_factor
 
-        font = world.score_font
-        font_color = world.score_font_color
-        text = "SCORE // " + str(world.player.score)
+        font = world.text_font
+        font_color = world.text_font_color
+        score_text = "SCORE // " + str(world.player.score)
+        lives_text = "LIVES // " + str(world.player.lives)
 
-        canvas.draw_text(text, (20, 40), font.get_size(), str(font_color),
+        canvas.draw_text(score_text, (20, 40), font.get_size(), str(font_color),
+                         font.get_face())
+        canvas.draw_text(lives_text, (20, 60), font.get_size(), str(font_color),
                          font.get_face())
 
         # Render items
