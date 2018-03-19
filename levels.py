@@ -7,6 +7,7 @@ from level_items import LevelItem
 
 from constants import LEVEL_BACKGROUND_IMAGE, WINDOW_SIZE, LEVEL_BACKGROUND_STRETCH_X
 from util import load_image
+from math import floor
 
 # Work around cyclic imports.
 if TYPE_CHECKING:
@@ -97,7 +98,9 @@ class Level(object):
 
         # Render items
         for item in self.items:
-            item.render(canvas)
+            bounds = item.get_bounds()
+            if bounds.max.x > 0 and bounds.min.x < WINDOW_SIZE[0]:
+                item.render(canvas)
 
         # Render player
         world.player.render(canvas)
