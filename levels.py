@@ -5,8 +5,10 @@ from constants import GRID_SIZE, BLOCK_SIZE
 from geom import Vector
 from level_items import LevelItem
 
-from constants import LEVEL_BACKGROUND_IMAGE, WINDOW_SIZE, LEVEL_BACKGROUND_STRETCH_X
+from constants import LEVEL_BACKGROUND_IMAGE, WINDOW_SIZE, LEVEL_BACKGROUND_STRETCH_X, \
+    LEVEL_USE_BACKGROUND
 from util import load_image
+from math import floor
 
 # Work around cyclic imports.
 if TYPE_CHECKING:
@@ -24,11 +26,12 @@ class Level(object):
     A game level.
     """
 
-    def __init__(self, level: int, start_pos: Tuple[int, int], scroll: Vector = Vector(0.05, 0)):
+    def __init__(self, world: 'World', level: int, start_pos: Tuple[int, int],
+                 scroll: Vector = Vector(0.05, 0)):
         self.level = level
         self.start_pos = Vector(
             start_pos[0] * BLOCK_SIZE,
-            (GRID_SIZE[1] - start_pos[1] - 1) * BLOCK_SIZE,
+            (GRID_SIZE[1] - start_pos[1] - 1) * BLOCK_SIZE
         )
 
         self.offset = Vector(0, 0)
@@ -37,12 +40,20 @@ class Level(object):
         self.items: List[LevelItem] = []
         self.finished = False
 
+        self.counter = 0
+        self.world = world
+        self.world.source.last_active_level = self
+
+        self.window_size = world.window.get_size()
+
         # Just some initialisation stuff here; less to compute later.
-        # self.background_offset = LEVEL_BACKGROUND_STRETCH_X / 2
-        # self.background_image = load_image(LEVEL_BACKGROUND_IMAGE)
-        # self.bg_size = (self.background_image.get_width(), self.background_image.get_height())
-        # self.bg_center = (self.bg_size[0] / 2, self.bg_size[1] / 2)
-        # self.half_window_height = WINDOW_SIZE[1] / 2
+        self.background_offset = self.window_size[0] / 2
+        self.background_image = load_image(LEVEL_BACKGROUND_IMAGE)
+        self.bg_size = (self.background_image.get_width(), self.background_image.get_height())
+        self.bg_center = (self.bg_size[0] / 2, self.bg_size[1] / 2)
+
+    def get_score(self):
+        return self.world.player.score
 
     def add_item(self, item: LevelItem):
         """
@@ -62,28 +73,45 @@ class Level(object):
         """
 
         # Draw background
-        # window_center_first = (
-        #     -(self.offset.x % LEVEL_BACKGROUND_STRETCH_X) + self.background_offset,
-        #     self.half_window_height
-        # )
-        # window_center_next = (
-        #     window_center_first[0] + LEVEL_BACKGROUND_STRETCH_X,
-        #     window_center_first[1]
-        # )
-        # real_size = (LEVEL_BACKGROUND_STRETCH_X, WINDOW_SIZE[1])
+        if LEVEL_USE_BACKGROUND:
+            center_dest1 = (
+                -(self.offset.x % self.window_size[0]) + self.background_offset,
+                self.window_size[1] / 2
+            )
+            center_dest2 = (
+                center_dest1[0] + self.window_size[0],
+                center_dest1[1]
+            )
+            canvas.draw_image(self.background_image, self.bg_center, self.bg_size,
+                              center_dest1, self.window_size)
+            canvas.draw_image(self.background_image, self.bg_center, self.bg_size,
+                              center_dest2, self.window_size)
 
-        # canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_first,
-        #                   real_size)
-        # canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_next,
-        #                   real_size)
+        self.counter += 1
 
-        # TODO: scale and position
-        world.player.score += 1
-        canvas.draw_text("SCORE: " + str(world.player.score), (750, 40), 40, "White")
+        if self.counter % BLOCK_SIZE == 0:
+            self.counter = 0
+            world.player.score += 1
+
+        dpi_factor = world.window.hidpi_factor
+
+        font = world.text_font
+        font_color = world.text_font_color
+        score_text = "SCORE // {0:d}".format(world.player.score)
+        lives_text = "LIVES // {0:d}".format(world.player.lives)
+
+        canvas.draw_text(score_text, (10 * dpi_factor, 20 * dpi_factor), font.get_size(),
+                         str(font_color),
+                         font.get_face())
+        canvas.draw_text(lives_text, (10 * dpi_factor, 40 * dpi_factor), font.get_size(),
+                         str(font_color),
+                         font.get_face())
 
         # Render items
         for item in self.items:
-            item.render(canvas)
+            bounds = item.get_bounds()
+            if bounds.max.x > 0 and bounds.min.x < WINDOW_SIZE[0]:
+                item.render(canvas)
 
         # Render player
         world.player.render(canvas)
@@ -97,6 +125,8 @@ class Level(object):
 
             next_level = self.level + 1
             if len(levels) >= next_level:
-                world.level = levels[next_level - 1]
+                target_level = levels[next_level - 1]
+                world.player.pos = target_level.start_pos
+                world.level = target_level
             else:
                 world.level = None

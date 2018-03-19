@@ -5,17 +5,22 @@ __all__ = [
     'WINDOW_SIZE',
     'FULLSCREEN',
     'HIDPI_FACTOR',
+    'PLAYER_POTATO',
     'PLAYER_SIZE',
     'PLAYER_VELOCITY',
+    'PLAYER_DEATH_VELOCITY',
+    'PLAYER_RESPAWN_X_OFFSET',
     'ACCEL_GRAVITY',
     'BUTTON_SIZE',
     'LEVEL_BACKGROUND_IMAGE',
+    'LEVEL_USE_BACKGROUND',
     'GRID_SIZE',
     'BLOCK_SIZE',
     'Key'
 ]
 
 _DPI_SCALE_OPTION = 'dpi-scale'
+_NO_BG_OPTION = 'no-bg'
 
 
 def _get_hidpi_factor() -> float:
@@ -24,14 +29,27 @@ def _get_hidpi_factor() -> float:
     for arg in argv:
         flag = str(arg).lower()
 
-        dpi_scale_opt = '--{0}='.format(_DPI_SCALE_OPTION)
-        if flag.startswith(dpi_scale_opt):
+        opt = '--{0}='.format(_DPI_SCALE_OPTION)
+        if flag.startswith(opt):
             try:
-                return float(flag[len(dpi_scale_opt):])
+                return float(flag[len(opt):])
             except ArithmeticError:
                 break
 
     return 1.0
+
+
+def _show_bg() -> bool:
+    from sys import argv
+
+    for arg in argv:
+        flag = str(arg).lower()
+
+        opt = '--{0}'.format(_NO_BG_OPTION)
+        if flag == opt:
+            return False
+
+    return True
 
 
 GRID_SIZE = (32, 18)
@@ -45,15 +63,17 @@ FULLSCREEN = False  # Display fullscreen.
 
 HIDPI_FACTOR = _get_hidpi_factor()  # HiDPI screen scale factor.
 
-PLAYER_SIZE = (BLOCK_SIZE, BLOCK_SIZE * 2)
+PLAYER_POTATO = True
+PLAYER_SIZE = (BLOCK_SIZE, BLOCK_SIZE)
 PLAYER_VELOCITY = (5, 20)  # (run, jump)
+PLAYER_DEATH_VELOCITY = (10, 25)
+PLAYER_RESPAWN_X_OFFSET = 40
 ACCEL_GRAVITY = -1.5
 
 BUTTON_SIZE = (200, 50)
 
+LEVEL_USE_BACKGROUND = _show_bg()  # Can cause lag on weak systems so this is optional
 LEVEL_BACKGROUND_IMAGE = 'assets/background.png'
-
-LEVEL_BACKGROUND_DIMS = (1920, 1080)
 LEVEL_BACKGROUND_STRETCH_X = WINDOW_SIZE[0]
 
 
@@ -179,4 +199,4 @@ class Key(IntEnum):
     SINGLE_QUOTE = 222
 
 
-del _get_hidpi_factor
+del _get_hidpi_factor, _show_bg

@@ -2,7 +2,9 @@ import math
 import simplegui
 
 from typing import TYPE_CHECKING, Tuple
-from constants import PLAYER_SIZE, PLAYER_VELOCITY, ACCEL_GRAVITY, BLOCK_SIZE, GRID_SIZE, Key
+from constants import PLAYER_SIZE, PLAYER_VELOCITY, PLAYER_DEATH_VELOCITY, PLAYER_RESPAWN_X_OFFSET, \
+    ACCEL_GRAVITY, BLOCK_SIZE, GRID_SIZE, WINDOW_SIZE, Key, PLAYER_POTATO
+from sprite import Sprite
 from util import Color
 from geom import Vector, BoundingBox
 from window import Renderable
@@ -104,53 +106,7 @@ class Trap(Rect):
 
         self.pos = pos
         self.size = size
-        self.color = Color(150, 40, 40)
-
-    def get_pos(self) -> Tuple[int, int]:
-        return self.pos
-
-    def get_size(self) -> Tuple[int, int]:
-        return self.size
-
-    def get_border_color(self) -> Color:
-        return self.color
-
-    def on_collide(self, player: 'Player'):
-        pass  # TODO: death logic
-
-
-class Finish(Rect):
-
-    def __init__(self, world: 'World', pos: Vector, size: Vector):
-        super().__init__(world)
-
-        self.pos = pos
-        self.size = size
-        self.color = Color(40, 200, 40)
-
-    def get_pos(self) -> Vector:
-        return self.pos
-
-    def get_size(self) -> Vector:
-        return self.size
-
-    def get_border_color(self) -> Color:
-        return self.color
-
-    def on_collide(self, player: 'Player'):
-        pass  # TODO: finish logic
-
-
-class Platform(Rect):
-
-    def __init__(self, world: 'World', pos: Tuple[int, int], size: Tuple[int, int],
-                 color: Color = Color(200, 200, 200), fill: bool = False):
-        super().__init__(world)
-
-        self.pos = pos
-        self.size = size
-        self.color = color
-        self.fill = fill
+        self.color = Color(200, 80, 80)
 
     def get_pos(self) -> Tuple[int, int]:
         return self.pos
@@ -162,32 +118,86 @@ class Platform(Rect):
         return self.color
 
     def get_fill_color(self) -> Color:
-        if self.fill:
-            return self.color
-        return super().get_fill_color()
+        return self.color
+
+    def on_collide(self, player: 'Player'):
+        # Perform a "hopping off" animation and disable collision
+        player.on_ground = False
+        player.is_dying = True
+        player.vel = Vector(math.copysign(PLAYER_DEATH_VELOCITY[0], player.vel.x),
+                            -PLAYER_DEATH_VELOCITY[1])
+
+
+class Finish(Rect):
+
+    def __init__(self, world: 'World', pos: Tuple[int, int], size: Tuple[int, int]):
+        super().__init__(world)
+
+        self.pos = pos
+        self.size = size
+        self.color = Color(0, 102, 255)
+
+    def get_pos(self) -> Tuple[int, int]:
+        return self.pos
+
+    def get_size(self) -> Tuple[int, int]:
+        return self.size
+
+    def get_border_color(self) -> Color:
+        return self.color
+
+    def get_fill_color(self) -> Color:
+        return self.color
+
+    def on_collide(self, player: 'Player'):
+        self.world.level.finish()
+
+
+class Platform(Rect):
+
+    def __init__(self, world: 'World', pos: Tuple[int, int], size: Tuple[int, int]):
+        super().__init__(world)
+
+        self.pos = pos
+        self.size = size
+        self.color = Color(80, 80, 80)
+
+    def get_pos(self) -> Tuple[int, int]:
+        return self.pos
+
+    def get_size(self) -> Tuple[int, int]:
+        return self.size
+
+    def get_border_color(self) -> Color:
+        return self.color
+
+    def get_fill_color(self) -> Color:
+        return self.color
 
     def on_collide(self, player: 'Player'):
         bounds = self.get_bounds()
+
         pbounds = player.get_bounds()
 
-        if (bounds.min.x < pbounds.min.x < bounds.max.x or
-                bounds.min.x < pbounds.max.x < bounds.max.x):
-            if pbounds.min.y <= bounds.min.y <= pbounds.max.y <= bounds.max.y:
-                # top
-                player.pos.y = bounds.min.y - player.size.y
-                player.on_ground = True
-            elif bounds.min.y <= pbounds.min.y <= bounds.max.y <= pbounds.max.y:
-                # bottom
-                player.pos.y = bounds.max.y
-
-        if (bounds.min.y < pbounds.min.y < bounds.max.y or
-                bounds.min.y < pbounds.max.y < bounds.max.y):
+        if bounds.min.y < pbounds.max.y or bounds.max.y < pbounds.min.y:
             if pbounds.min.x <= bounds.min.x <= pbounds.max.x <= bounds.max.x:
                 # left
                 player.pos.x = bounds.min.x - player.size.x
             elif bounds.min.x <= pbounds.min.x <= bounds.max.x <= pbounds.max.x:
                 # right
                 player.pos.x = bounds.max.x
+
+        pbounds = player.get_bounds()
+
+        if bounds.min.x < pbounds.max.x or bounds.max.x < pbounds.min.x:
+            if pbounds.min.y <= bounds.min.y <= pbounds.max.y <= bounds.max.y:
+                # top
+                player.pos.y = bounds.min.y - player.size.y
+                player.on_ground = True
+                player.desired_platform = self
+            elif bounds.min.y <= pbounds.min.y <= bounds.max.y <= pbounds.max.y:
+                # bottom
+                player.pos.y = bounds.max.y
 
 
 class Player(Renderable):
@@ -200,17 +210,22 @@ class Player(Renderable):
 
         self.pos = world.level.start_pos
         self.last_pos = self.pos.copy()
+        self.last_x = 0
         self.vel = Vector(0, 0)
         self.accel = Vector(0, 0)
 
         self.on_ground = False
-        self.on_wall = False
         self.jumping = False
         self.moving_x = False
-
-        self.colliding_with = None
+        self.is_dying = False
+        self.desired_platform = None
 
         self.score = 0
+        self.lives = 3
+
+        self.sprite_cols = 8
+        self.sprite = Sprite('assets/player.png', self.sprite_cols, 1)
+        self.roll = 0
 
     def jump(self):
         self.on_ground = False
@@ -228,63 +243,95 @@ class Player(Renderable):
         return BoundingBox(bounds.min * dpi_factor, bounds.max * dpi_factor)
 
     def on_key_down(self, key: int):
-        if key == Key.SPACE:
-            self.jumping = True  # Allow holding jump button.
-            if self.on_ground:
-                self.jump()
+        if not self.is_dying:
+            if key == Key.SPACE:
+                self.jumping = True  # Allow holding jump button.
+                if self.on_ground:
+                    self.jump()
 
-        elif key == Key.KEY_A:
-            self.vel.x = -PLAYER_VELOCITY[0]
+            elif key == Key.KEY_A:
+                self.vel.x = -PLAYER_VELOCITY[0]
 
-        elif key == Key.KEY_D:
-            self.vel.x = PLAYER_VELOCITY[0]
+            elif key == Key.KEY_D:
+                self.vel.x = PLAYER_VELOCITY[0]
 
     def on_key_up(self, key: int):
-        if key == Key.SPACE:
-            self.jumping = False
+        if not self.is_dying:
+            if key == Key.SPACE:
+                self.jumping = False
 
-        elif key == Key.KEY_A:
-            if self.vel.x < 0:
-                self.vel.x = 0
+            elif key == Key.KEY_A:
+                if self.vel.x < 0:
+                    self.vel.x = 0
 
-        elif key == Key.KEY_D:
-            if self.vel.x > 0:
-                self.vel.x = 0
+            elif key == Key.KEY_D:
+                if self.vel.x > 0:
+                    self.vel.x = 0
+
+    def on_death(self):
+        self.lives -= 1
+
+        if self.lives == 0:
+            self.world.window.handler = self.world.source
+        else:
+            self.vel.x = 0
+            self.vel.y = 0
+            if self.desired_platform is None:
+                self.pos = Vector(PLAYER_RESPAWN_X_OFFSET, -self.size.y)
+            else:
+                bounds = self.desired_platform.get_bounds()
+
+                if bounds.max.x <= 0:
+                    self.pos = Vector(PLAYER_RESPAWN_X_OFFSET, -self.size.y)
+                else:
+                    # Place player on platform they last touched
+                    self.pos = Vector(bounds.max.x - self.size.x - PLAYER_RESPAWN_X_OFFSET,
+                                      bounds.min.y - self.size.y)
+
+            self.is_dying = False
 
     def render(self, canvas: simplegui.Canvas):
         bounds = self.get_bounds()
         dpi_factor = self.window.hidpi_factor
 
         # Draw player.
-        point_list = [p.multiply(dpi_factor).into_tuple() for p in bounds]
-        color = Color(120, 120, 200)
+        if PLAYER_POTATO:
+            dest_center = self.pos + self.size / 2
+            index = (self.roll // self.sprite_cols) % self.sprite_cols
+            self.sprite.draw(canvas, dest_center * dpi_factor, self.size * dpi_factor, (index, 0))
+        else:
+            point_list = [p.multiply(dpi_factor).into_tuple() for p in bounds]
+            color = Color(120, 120, 200)
 
-        canvas.draw_polygon(point_list, 1, str(color), str(color))  # TODO: sprite?
+            canvas.draw_polygon(point_list, 1, str(color), str(color))
 
         # Update position.
         self.last_pos = self.pos.copy()
         self.pos.add(self.vel)
+
+        self.roll += self.vel.x * 2 / PLAYER_VELOCITY[0]
+        self.roll += 1
 
         if abs(self.vel.x) > PLAYER_VELOCITY[0]:
             self.vel.x = math.copysign(PLAYER_VELOCITY[0], self.vel.x)
 
         # Check collisions position.
         self.on_ground = False
-        self.on_wall = False
 
-        for item in self.world.level.items:
-            if item.collides_with(bounds):
-                item.on_collide(self)
+        bounds = self.get_bounds()
+        if not self.is_dying:
+            for item in self.world.level.items:
+                if item.collides_with(bounds):
+                    item.on_collide(self)
 
         self.vel.add(self.accel)
 
-        # Do gravity and platform collision
+        # Do gravity and platform collision.
         if self.on_ground:
-            self.accel.y = 0
             self.vel.y = 0
+            self.accel.y = 0
         else:
             self.accel.y = -ACCEL_GRAVITY
 
-        if self.on_wall:
-            self.accel.x = 0
-            self.vel.x = 0
+        if bounds.max.y >= WINDOW_SIZE[1] or bounds.min.x <= 0:
+            self.on_death()
