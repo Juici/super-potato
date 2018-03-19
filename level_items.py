@@ -2,7 +2,8 @@ import math
 import simplegui
 
 from typing import TYPE_CHECKING, Tuple
-from constants import PLAYER_SIZE, PLAYER_VELOCITY, PLAYER_DEATH_VELOCITY, PLAYER_RESPAWN_X_OFFSET, ACCEL_GRAVITY, BLOCK_SIZE, GRID_SIZE, WINDOW_SIZE, Key
+from constants import PLAYER_SIZE, PLAYER_VELOCITY, PLAYER_DEATH_VELOCITY, PLAYER_RESPAWN_X_OFFSET, \
+    ACCEL_GRAVITY, BLOCK_SIZE, GRID_SIZE, WINDOW_SIZE, Key
 from util import Color
 from geom import Vector, BoundingBox
 from window import Renderable
@@ -128,17 +129,17 @@ class Trap(Rect):
 
 class Finish(Rect):
 
-    def __init__(self, world: 'World', pos: Vector, size: Vector):
+    def __init__(self, world: 'World', pos: Tuple[int, int], size: Tuple[int, int]):
         super().__init__(world)
 
         self.pos = pos
         self.size = size
         self.color = Color(0, 102, 255)
 
-    def get_pos(self) -> Vector:
+    def get_pos(self) -> Tuple[int, int]:
         return self.pos
 
-    def get_size(self) -> Vector:
+    def get_size(self) -> Tuple[int, int]:
         return self.size
 
     def get_border_color(self) -> Color:
