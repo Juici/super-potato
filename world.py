@@ -40,6 +40,7 @@ class World(WindowHandler):
         level1 = Level(1, (1, 4))
         level1.add_item(Platform(self, (1, 1), (10, 1)))
         level1.add_item(Platform(self, (14, 2), (4, 1)))
+        level1.add_item(Platform(self, (17, 4), (1, 3)))
         levels.append(level1)
 
         return levels

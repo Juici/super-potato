@@ -171,10 +171,22 @@ class Platform(Rect):
         bounds = self.get_bounds()
         pbounds = player.get_bounds()
 
-        if pbounds.min.y <= bounds.min.y <= pbounds.max.y <= bounds.max.y:
-            # falling down
-            player.pos.y = bounds.min.y - player.size.y
-            player.on_ground = True
+        if bounds.min.x <= pbounds.min.x or pbounds.max.x <= bounds.max.x:
+            if pbounds.min.y <= bounds.min.y <= pbounds.max.y <= bounds.max.y:
+                # top
+                player.pos.y = bounds.min.y - player.size.y
+                player.on_ground = True
+            # elif bounds.min.y <= pbounds.min.y <= bounds.max.y <= pbounds.max.y:
+            #     # bottom
+            #     player.pos.y = bounds.max.y
+
+        # if bounds.min.y <= pbounds.min.y or pbounds.max.y <= bounds.max.y:
+        #     if pbounds.min.x <= bounds.min.x <= pbounds.max.x <= bounds.max.x:
+        #         # left
+        #         player.pos.x = bounds.min.x - player.size.x
+        #     elif bounds.min.x <= pbounds.min.x <= bounds.max.x <= pbounds.max.x:
+        #         # right
+        #         player.pos.x = bounds.max.x
 
 
 class Player(Renderable):

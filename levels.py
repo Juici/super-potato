@@ -15,6 +15,10 @@ if TYPE_CHECKING:
 __all__ = ['Level']
 
 
+# FIXME: rendering background image has a game breaking affect on the fps and cpu usage;
+# FIXME: until we can find a fix this'll need to remain commented out
+
+
 class Level(object):
     """
     A game level.
@@ -34,11 +38,11 @@ class Level(object):
         self.finished = False
 
         # Just some initialisation stuff here; less to compute later.
-        self.background_offset = LEVEL_BACKGROUND_STRETCH_X / 2
-        self.background_image = load_image(LEVEL_BACKGROUND_IMAGE)
-        self.bg_size = (self.background_image.get_width(), self.background_image.get_height())
-        self.bg_center = (self.bg_size[0] / 2, self.bg_size[1] / 2)
-        self.half_window_height = WINDOW_SIZE[1] / 2
+        # self.background_offset = LEVEL_BACKGROUND_STRETCH_X / 2
+        # self.background_image = load_image(LEVEL_BACKGROUND_IMAGE)
+        # self.bg_size = (self.background_image.get_width(), self.background_image.get_height())
+        # self.bg_center = (self.bg_size[0] / 2, self.bg_size[1] / 2)
+        # self.half_window_height = WINDOW_SIZE[1] / 2
 
     def add_item(self, item: LevelItem):
         """
@@ -58,21 +62,22 @@ class Level(object):
         """
 
         # Draw background
-        window_center_first = (
-            -(self.offset.x % LEVEL_BACKGROUND_STRETCH_X) + self.background_offset,
-            self.half_window_height
-        )
-        window_center_next = (
-            window_center_first[0] + LEVEL_BACKGROUND_STRETCH_X,
-            window_center_first[1]
-        )
-        real_size = (LEVEL_BACKGROUND_STRETCH_X, WINDOW_SIZE[1])
-        
-        canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_first,
-                          real_size)
-        canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_next,
-                          real_size)
+        # window_center_first = (
+        #     -(self.offset.x % LEVEL_BACKGROUND_STRETCH_X) + self.background_offset,
+        #     self.half_window_height
+        # )
+        # window_center_next = (
+        #     window_center_first[0] + LEVEL_BACKGROUND_STRETCH_X,
+        #     window_center_first[1]
+        # )
+        # real_size = (LEVEL_BACKGROUND_STRETCH_X, WINDOW_SIZE[1])
 
+        # canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_first,
+        #                   real_size)
+        # canvas.draw_image(self.background_image, self.bg_center, self.bg_size, window_center_next,
+        #                   real_size)
+
+        # TODO: scale and position
         world.player.score += 1
         canvas.draw_text("SCORE: " + str(world.player.score), (750, 40), 40, "White")
 
