@@ -44,12 +44,13 @@ class Level(object):
         self.world = world
         self.world.source.last_active_level = self
 
+        self.window_size = world.window.get_size()
+
         # Just some initialisation stuff here; less to compute later.
-        self.background_offset = LEVEL_BACKGROUND_STRETCH_X / 2
+        self.background_offset = self.window_size[0] / 2
         self.background_image = load_image(LEVEL_BACKGROUND_IMAGE)
         self.bg_size = (self.background_image.get_width(), self.background_image.get_height())
         self.bg_center = (self.bg_size[0] / 2, self.bg_size[1] / 2)
-        self.half_window_height = WINDOW_SIZE[1] / 2
 
     def get_score(self):
         return self.world.player.score
@@ -74,20 +75,17 @@ class Level(object):
         # Draw background
         if LEVEL_USE_BACKGROUND:
             center_dest1 = (
-                -(self.offset.x % LEVEL_BACKGROUND_STRETCH_X) + self.background_offset,
-                self.half_window_height
+                -(self.offset.x % self.window_size[0]) + self.background_offset,
+                self.window_size[1] / 2
             )
             center_dest2 = (
-                center_dest1[0] + LEVEL_BACKGROUND_STRETCH_X,
+                center_dest1[0] + self.window_size[0],
                 center_dest1[1]
             )
-            real_size = (LEVEL_BACKGROUND_STRETCH_X, WINDOW_SIZE[1])
             canvas.draw_image(self.background_image, self.bg_center, self.bg_size,
-                              center_dest1,
-                              real_size)
+                              center_dest1, self.window_size)
             canvas.draw_image(self.background_image, self.bg_center, self.bg_size,
-                              center_dest2,
-                              real_size)
+                              center_dest2, self.window_size)
 
         self.counter += 1
 
