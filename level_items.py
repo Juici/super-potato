@@ -2,7 +2,8 @@ import math
 import simplegui
 
 from typing import TYPE_CHECKING, Tuple
-from constants import PLAYER_SIZE, PLAYER_VELOCITY, ACCEL_GRAVITY, ACCEL_JUMP, BLOCK_SIZE, GRID_SIZE, Key
+from constants import PLAYER_SIZE, PLAYER_VELOCITY, ACCEL_GRAVITY, ACCEL_JUMP, BLOCK_SIZE, \
+    GRID_SIZE, Key
 from util import Color
 from geom import Vector, BoundingBox
 from window import Renderable
@@ -63,19 +64,7 @@ class Rect(LevelItem):
         """
         return Color(0, 0, 0)
 
-    def render(self, canvas: simplegui.Canvas):
-        bounds = self.get_bounds()
-
-        point_list = bounds.into_point_list()
-        border_width = self.get_border_width()
-        border_color = str(self.get_border_color())
-        fill_color = str(self.get_fill_color())
-
-        canvas.draw_polygon(point_list, border_width, border_color, fill_color)
-
     def get_bounds(self) -> BoundingBox:
-        dpi_factor = self.window.hidpi_factor
-
         pos = self.get_pos()
         size = self.get_size()
 
@@ -88,10 +77,25 @@ class Rect(LevelItem):
             size[1] * BLOCK_SIZE,
         )
 
-        pos = (pos - self.world.level.offset) * dpi_factor
-        size = size * dpi_factor
+        pos = pos - self.world.level.offset
+        size = size
 
         return BoundingBox(pos, pos + size)
+
+    def get_render_bounds(self) -> BoundingBox:
+        bounds = self.get_bounds()
+        dpi_factor = self.window.hidpi_factor
+        return BoundingBox(bounds.min * dpi_factor, bounds.max * dpi_factor)
+
+    def render(self, canvas: simplegui.Canvas):
+        rbounds = self.get_render_bounds()
+
+        point_list = rbounds.into_point_list()
+        border_width = self.get_border_width()
+        border_color = str(self.get_border_color())
+        fill_color = str(self.get_fill_color())
+
+        canvas.draw_polygon(point_list, border_width, border_color, fill_color)
 
 
 class Trap(Rect):
@@ -164,7 +168,14 @@ class Platform(Rect):
         return super().get_fill_color()
 
     def on_collide(self, player: 'Player'):
-        pass  # TODO: solid collision
+        bounds = self.get_bounds()
+        pbounds = player.get_bounds()
+
+        if (pbounds.min.y <= bounds.min.y and
+                pbounds.max.y <= bounds.max.y):
+            # falling down
+            player.pos.y = bounds.min.y - player.size.y
+            player.on_ground = True
 
 
 class Player(Renderable):
@@ -188,17 +199,19 @@ class Player(Renderable):
 
         self.score = 0
 
-    #def jump(self):
+    # def jump(self):
     #    self.vel.y = PLAYER_VELOCITY[1]
     #    self.accel.y = ACCEL_GRAVITY[1]
 
     def get_bounds(self) -> BoundingBox:
-        dpi_factor = self.window.hidpi_factor
-
-        pos = self.pos * dpi_factor
-        size = self.size * dpi_factor
-
+        pos = self.pos
+        size = self.size
         return BoundingBox(pos, pos + size)
+
+    def get_render_bounds(self) -> BoundingBox:
+        bounds = self.get_bounds()
+        dpi_factor = self.window.hidpi_factor
+        return BoundingBox(bounds.min * dpi_factor, bounds.max * dpi_factor)
 
     def on_key_down(self, key: int):
         if key == Key.SPACE:
@@ -224,9 +237,10 @@ class Player(Renderable):
 
     def render(self, canvas: simplegui.Canvas):
         bounds = self.get_bounds()
+        dpi_factor = self.window.hidpi_factor
 
         # Draw player.
-        point_list = bounds.into_point_list()
+        point_list = [p.multiply(dpi_factor).into_tuple() for p in bounds]
         color = Color(120, 120, 200)
 
         canvas.draw_polygon(point_list, 1, str(color), str(color))  # TODO: sprite?
@@ -234,31 +248,22 @@ class Player(Renderable):
         # Update position.
         self.last_pos = self.pos.copy()
         self.pos.add(self.vel)
-        self.vel.add(self.accel)
 
         if abs(self.vel.x) > PLAYER_VELOCITY[0]:
             self.vel.x = math.copysign(PLAYER_VELOCITY[0], self.vel.x)
 
         # Check collisions position.
-        did_collide = False
+        self.on_ground = False
+
         for item in self.world.level.items:
             if item.collides_with(bounds):
                 item.on_collide(self)
-                if did_collide == False:
-                    self.colliding_with = item
-                    did_collide = True
 
-        on_ground = did_collide and isinstance(self.colliding_with, Platform)
-        self.on_ground = on_ground
+        self.vel.add(self.accel)
 
         # Do gravity and platform collision
-        if self.jumping and on_ground:
-            self.accel.y = -ACCEL_JUMP
-            self.on_ground = False
-        elif on_ground:
-            hit_pos = self.colliding_with.get_bounds().min
+        if self.on_ground:
             self.accel.y = 0
             self.vel.y = 0
-            self.pos = Vector(self.pos.x, hit_pos.y - self.size.y)
         else:
             self.accel.y = -ACCEL_GRAVITY
