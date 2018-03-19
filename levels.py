@@ -89,7 +89,6 @@ class Level(object):
                               center_dest2,
                               real_size)
 
-        # TODO: scale and position
         self.counter += 1
 
         if self.counter % BLOCK_SIZE == 0:
@@ -100,8 +99,8 @@ class Level(object):
 
         font = world.text_font
         font_color = world.text_font_color
-        score_text = "SCORE // " + str(world.player.score)
-        lives_text = "LIVES // " + str(world.player.lives)
+        score_text = "SCORE // {0:d}".format(world.player.score)
+        lives_text = "LIVES // {0:d}".format(world.player.lives)
 
         canvas.draw_text(score_text, (10 * dpi_factor, 20 * dpi_factor), font.get_size(),
                          str(font_color),

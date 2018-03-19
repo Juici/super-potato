@@ -26,8 +26,8 @@ class StartMenu(WindowHandler):
 
         from constants import BUTTON_SIZE
 
-        win_size = window.get_size()
-        win_center = (win_size[0] / 2, win_size[1] / 2)
+        self.window_size = window.get_size()
+        self.window_center = (self.window_size[0] / 2, self.window_size[1] / 2)
 
         dpi_factor = window.hidpi_factor
 
@@ -45,11 +45,14 @@ class StartMenu(WindowHandler):
         self.max_score = 0
         self.last_active_level = None
 
+        self.text_font = Font('monospace', 20, window.hidpi_factor)
+        self.text_font_color = Color(255, 255, 255)
+
         # Template to create new button
         start_btn = Button(window,
                            '[ Start ]',
-                           Vector(win_center[0] - button_size[0] / 2,
-                                  win_center[1] - button_size[1]),
+                           Vector(self.window_center[0] - button_size[0] / 2,
+                                  self.window_center[1] - button_size[1]),
                            Vector(*button_size),
                            Color(0, 102, 255), Color(255, 255, 255),
                            Color(0, 80, 230), Color(255, 255, 255),
@@ -59,8 +62,8 @@ class StartMenu(WindowHandler):
 
         help_btn = Button(window,
                           '[ Help ]',
-                          Vector(win_center[0] - button_size[0] / 2,
-                                 win_center[1] + button_size[1]),
+                          Vector(self.window_center[0] - button_size[0] / 2,
+                                 self.window_center[1] + button_size[1]),
                           Vector(*button_size),
                           Color(0, 102, 255), Color(255, 255, 255),
                           Color(0, 80, 230), Color(255, 255, 255),
@@ -69,11 +72,9 @@ class StartMenu(WindowHandler):
         self.children.append(help_btn)
 
     def render(self, canvas: simplegui.Canvas):
-        window_size = self.window.get_size()
-        window_center = (window_size[0] / 2, window_size[1] / 2)
-
         # Draw background.
-        canvas.draw_image(self.bg_image, self.bg_center, self.bg_size, window_center, window_size)
+        canvas.draw_image(self.bg_image, self.bg_center, self.bg_size, self.window_center,
+                          self.window_size)
 
         if not (self.last_active_level is None):
             last_score = self.last_active_level.get_score()
@@ -82,11 +83,14 @@ class StartMenu(WindowHandler):
 
         # Draw logo
         canvas.draw_image(self.logo, self.logo_center, self.logo_size,
-                          (window_center[0], window_size[1] / 4),
-                          (window_size[0] / 4, window_size[1] / 4))
+                          (self.window_center[0], self.window_size[1] / 4),
+                          (self.window_size[0] / 4, self.window_size[1] / 4))
 
         # TODO: load highscore
-        canvas.draw_text("HIGH SCORE // " + str(self.max_score), (20, 40), 40, "White")
+        dpi_factor = self.window.hidpi_factor
+        canvas.draw_text("HIGH SCORE // {0:d}".format(self.max_score),
+                         (10 * dpi_factor, 20 * dpi_factor), self.text_font.get_size(),
+                         str(self.text_font_color), self.text_font.get_face())
 
         # Draw children.
         super().render(canvas)
