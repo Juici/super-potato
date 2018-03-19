@@ -26,7 +26,8 @@ class Level(object):
     A game level.
     """
 
-    def __init__(self, world: 'World', level: int, start_pos: Tuple[int, int], scroll: Vector = Vector(0.05, 0)):
+    def __init__(self, world: 'World', level: int, start_pos: Tuple[int, int],
+                 scroll: Vector = Vector(0.05, 0)):
         self.level = level
         self.start_pos = Vector(
             start_pos[0] * BLOCK_SIZE,
@@ -72,20 +73,20 @@ class Level(object):
 
         # Draw background
         if LEVEL_USE_BACKGROUND:
-            window_center_first = (
+            center_dest1 = (
                 -(self.offset.x % LEVEL_BACKGROUND_STRETCH_X) + self.background_offset,
                 self.half_window_height
             )
-            window_center_next = (
-                window_center_first[0] + LEVEL_BACKGROUND_STRETCH_X,
-                window_center_first[1]
+            center_dest2 = (
+                center_dest1[0] + LEVEL_BACKGROUND_STRETCH_X,
+                center_dest1[1]
             )
             real_size = (LEVEL_BACKGROUND_STRETCH_X, WINDOW_SIZE[1])
             canvas.draw_image(self.background_image, self.bg_center, self.bg_size,
-                              window_center_first,
+                              center_dest1,
                               real_size)
             canvas.draw_image(self.background_image, self.bg_center, self.bg_size,
-                              window_center_next,
+                              center_dest2,
                               real_size)
 
         # TODO: scale and position
@@ -102,9 +103,11 @@ class Level(object):
         score_text = "SCORE // " + str(world.player.score)
         lives_text = "LIVES // " + str(world.player.lives)
 
-        canvas.draw_text(score_text, (20, 40), font.get_size(), str(font_color),
+        canvas.draw_text(score_text, (10 * dpi_factor, 20 * dpi_factor), font.get_size(),
+                         str(font_color),
                          font.get_face())
-        canvas.draw_text(lives_text, (20, 60), font.get_size(), str(font_color),
+        canvas.draw_text(lives_text, (10 * dpi_factor, 40 * dpi_factor), font.get_size(),
+                         str(font_color),
                          font.get_face())
 
         # Render items

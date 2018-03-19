@@ -72,7 +72,6 @@ BUTTON_SIZE = (200, 50)
 
 LEVEL_USE_BACKGROUND = _show_bg()  # Can cause lag on weak systems so this is optional
 LEVEL_BACKGROUND_IMAGE = 'assets/background.png'
-LEVEL_BACKGROUND_DIMS = (1920, 1080)
 LEVEL_BACKGROUND_STRETCH_X = WINDOW_SIZE[0]
 
 
