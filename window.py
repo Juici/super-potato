@@ -1,17 +1,12 @@
-from typing import List, Tuple
-
-import constants
-import geom
-
 import pygame
 import simplegui
 
+from typing import List, Tuple
+
+from constants import HIDPI_FACTOR
+from geom import Vector, BoundingBox
+
 __all__ = ['Window', 'Renderable', 'RenderableParent', 'WindowHandler']
-
-HIDPI_FACTOR = constants.HIDPI_FACTOR
-
-Vector = geom.Vector
-Polygon = geom.Polygon
 
 
 class Window(object):
@@ -28,7 +23,7 @@ class Window(object):
         self.handler = WindowHandler(self)  # A noop window handler.
 
         self._hide_control_panel()  # Hide control panel.
-        self.fullscreen = self._set_fullscreen(fullscreen)  # Set fullscreen state.
+#        self.fullscreen = self._set_fullscreen(fullscreen)  # Set fullscreen state.
 
         # Get appropriate window size.
         width, height = self._get_window_size(size, fullscreen)
@@ -99,9 +94,10 @@ class Window(object):
         """
         assert size[0] > 0 and size[1] > 0
 
-        self.frame._pygame_surface: pygame.Surface = pygame.display.set_mode((size[0], size[0]),
-                                                                             simplegui.Frame._pygame_mode_flags,
-                                                                             simplegui.Frame._pygame_mode_depth)
+        self.frame._pygame_surface: pygame.Surface = \
+            pygame.display.set_mode((size[0], size[0]),
+                                    simplegui.Frame._pygame_mode_flags,
+                                    simplegui.Frame._pygame_mode_depth)
         self.frame._pygame_surface.fill(simplegui.Frame._background_pygame_color)
 
         # update display
@@ -194,9 +190,10 @@ class Window(object):
         simplegui.Frame._statusmouse_height = 0
 
         # redraw frame to correct size
-        frame._pygame_surface: pygame.Surface = pygame.display.set_mode((width, height),
-                                                                        simplegui.Frame._pygame_mode_flags,
-                                                                        simplegui.Frame._pygame_mode_depth)
+        frame._pygame_surface: pygame.Surface = \
+            pygame.display.set_mode((width, height),
+                                    simplegui.Frame._pygame_mode_flags,
+                                    simplegui.Frame._pygame_mode_depth)
         frame._pygame_surface.fill(simplegui.Frame._background_pygame_color)
 
         # update display
@@ -269,7 +266,7 @@ class Renderable(object):
         self.window = window
         self.parent: 'RenderableParent' = None
 
-    def get_bounds(self) -> Polygon:
+    def get_bounds(self) -> BoundingBox:
         """
         The bounds of the rendered object.
         Used to handle mouse events.
@@ -348,7 +345,7 @@ class RenderableParent(Renderable):
         for child in self.children:
             child.render(canvas)
 
-    def get_bounds(self) -> Polygon:
+    def get_bounds(self) -> BoundingBox:
         raise NotImplementedError
 
     def on_click(self, pos: Vector):
@@ -419,9 +416,9 @@ class WindowHandler(RenderableParent):
         """
         super().render(canvas)
 
-    def get_bounds(self) -> Polygon:
+    def get_bounds(self) -> BoundingBox:
         size = self.window.get_size()
-        return Polygon(
+        return BoundingBox(
             Vector(0, 0),
             Vector(size[0], 0),
             Vector(size[0], size[1]),

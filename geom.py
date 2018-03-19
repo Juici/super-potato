@@ -1,9 +1,9 @@
 import math
 
-from numbers import Real
 from typing import Tuple, List, Any
+from numbers import Real
 
-__all__ = ['Vector', 'Polygon', 'on_segment', 'orientation', 'lines_intersect']
+__all__ = ['Vector', 'BoundingBox', 'on_segment', 'orientation', 'lines_intersect']
 
 
 class Vector(object):
@@ -210,6 +210,14 @@ class Vector(object):
         """
         return math.acos(self.dot(other) / (self.length() * other.length()))
 
+    # Lerp
+
+    def lerp(self, other: 'Vector', factor) -> 'Vector':
+        """
+        Transitions one vector into another across a line with scalar 'factor'
+        """
+        return (1.0 - factor) * self + factor * other
+
     # Copy
 
     def copy(self) -> 'Vector':
@@ -287,55 +295,55 @@ class Vector(object):
         return float(self.x), float(self.y)
 
 
-class Polygon(object):
+class BoundingBox(object):
     """
-    Represents a bounding area in the form of a polygon.
+    Represents a bounding area in the form of a rectangle.
     """
 
-    def __init__(self, *points: Vector):
-        """
-        Constructs a polygon from a list of Vectors.
-        """
-        self.points = list(points)
-
-    def __getitem__(self, item: int) -> Vector:
-        return self.points[item]
-
-    def __setitem__(self, key: int, value: Vector):
-        self.points[key] = value
-
-    def __len__(self):
-        return len(self.points)
+    def __init__(self, min: Vector, max: Vector):
+        self.min = min
+        self.max = max
 
     def __iter__(self):
-        yield from self.points
+        yield Vector(self.min.x, self.min.y)
+        yield Vector(self.max.x, self.min.y)
+        yield Vector(self.max.x, self.max.y)
+        yield Vector(self.min.x, self.max.y)
+
+    def vertices(self) -> Tuple[Vector, Vector, Vector, Vector]:
+        """
+        Returns the corners of the bounding box.
+        """
+        return tuple(self)
 
     def contains(self, p: Vector) -> bool:
         """
-        Returns `true` if the vector `p` is inside the polygon.
+        Returns `true` if the vector `p` is inside the bounding box.
         """
-        n = len(self.points)
+        return self.min.x <= p.x <= self.max.x and self.min.y <= p.y <= self.max.y
 
-        i = 0
-        j = n - 1
-        c = False
+    def collides(self, other: 'BoundingBox') -> bool:
+        """
+        Returns `true` if this bounding box collides with the other bounding box.
+        """
+        return (
+                self.min.x <= other.max.x and
+                self.max.x >= other.min.x and
+                self.min.y <= other.max.y and
+                self.max.y >= other.min.y
+        )
 
-        while i < n:
-            if ((self.points[i].y > p.y) != (self.points[j].y > p.y)) and (
-                    p.x < (self.points[j].x - self.points[i].x) * (p.y - self.points[i].y) / (
-                    self.points[j].y - self.points[i].y) + self.points[i].x):
-                c = not c
-
-            j = i
-            i += 1
-
-        return c
-
+    def collides_top_bottom(self, other: 'BoundingBox'):
+        return self.min.y <= other.max.y and self.max.y >= other.min.y
+    
+    def collides_left_right(self, other: 'BoundingBox'):
+        return self.min.x <= other.max.x and self.max.x >= other.min.x
+    
     def into_point_list(self) -> List[Tuple[float, float]]:
         """
-        Returns the polygon as point list.
+        Returns the bounding box as point list.
         """
-        return [p.into_tuple() for p in self.points]
+        return [p.into_tuple() for p in self]
 
 
 def on_segment(l: Tuple[Vector, Vector], p: Vector) -> bool:

@@ -1,10 +1,11 @@
-from typing import List, TYPE_CHECKING
-from constants import PLAYER_SIZE, PLAYER_VELOCITY, PLAYER_ACCELERATION, Key
-from util import Color
-from geom import Vector, Polygon
-from window import Renderable
-
+import math
 import simplegui
+
+from typing import TYPE_CHECKING, Tuple
+from constants import PLAYER_SIZE, PLAYER_VELOCITY, ACCEL_GRAVITY, BLOCK_SIZE, GRID_SIZE, Key
+from util import Color
+from geom import Vector, BoundingBox
+from window import Renderable
 
 # Work around cyclic imports.
 if TYPE_CHECKING:
@@ -19,44 +20,14 @@ class LevelItem(Renderable):
         super().__init__(world.window)
         self.world = world
 
-    def get_bounds(self) -> Polygon:
+    def get_bounds(self) -> BoundingBox:
         raise NotImplementedError
 
     def on_collide(self, player: 'Player'):
         pass
 
-    def collides_with(self, polygon: Polygon) -> bool:
-        poly1 = self.get_bounds()
-        n1 = len(poly1)
-        if n1 == 0:
-            return False
-
-        poly2 = polygon
-        n2 = len(poly2)
-        if n2 == 0:
-            return False
-
-        # Basic cases where a point is inside the polygon.
-        if poly1.contains(poly2[0]):
-            return True
-        elif poly2.contains(poly1[0]):
-            return True
-
-        from geom import lines_intersect
-
-        # Loop bounds.
-        for i1 in range(n1):
-            j1 = (i1 + 1) % n1
-            l1 = (poly1[i1], poly1[j1])
-
-            for i2 in range(n2):
-                j2 = (i2 + 1) % n2
-                l2 = (poly2[i2], poly2[j2])
-
-                if lines_intersect(l1, l2):
-                    return True
-
-        return False  # TODO: implement some nutty polygon-polygon collision logic
+    def collides_with(self, box: BoundingBox) -> bool:
+        return self.get_bounds().collides(box)
 
 
 class Rect(LevelItem):
@@ -68,26 +39,11 @@ class Rect(LevelItem):
     def __init__(self, world: 'World'):
         super().__init__(world)
 
-    def get_pos(self) -> Vector:
-        """
-        Returns the position of the rectangle in the world.
-        """
+    def get_pos(self) -> Tuple[int, int]:
         raise NotImplementedError
 
-    def get_size(self) -> Vector:
-        """
-        Returns the size of the rectangle.
-        """
-        raise NotImplementedError
-
-    def get_render_pos(self) -> Vector:
-        """
-        Returns the render position of the rectangle.
-        """
-        pos = self.get_pos()
-        offset = self.world.level.offset
-
-        return pos + offset
+    def get_size(self) -> Tuple[int, int]:
+        return 1, 1
 
     def get_border_width(self) -> int:
         """
@@ -105,43 +61,55 @@ class Rect(LevelItem):
         """
         Returns the fill color of the rectangle.
         """
-        return Color(0, 0, 0, 0.0)
+        return Color(0, 0, 0)
+
+    def get_bounds(self) -> BoundingBox:
+        pos = self.get_pos()
+        size = self.get_size()
+
+        pos = Vector(
+            pos[0] * BLOCK_SIZE,
+            (GRID_SIZE[1] - pos[1] - 1) * BLOCK_SIZE,
+        )
+        size = Vector(
+            size[0] * BLOCK_SIZE,
+            size[1] * BLOCK_SIZE,
+        )
+
+        pos = pos - self.world.level.offset
+        size = size
+
+        return BoundingBox(pos, pos + size)
+
+    def get_render_bounds(self) -> BoundingBox:
+        bounds = self.get_bounds()
+        dpi_factor = self.window.hidpi_factor
+        return BoundingBox(bounds.min * dpi_factor, bounds.max * dpi_factor)
 
     def render(self, canvas: simplegui.Canvas):
-        point_list = self.get_bounds().into_point_list()
+        rbounds = self.get_render_bounds()
+
+        point_list = rbounds.into_point_list()
         border_width = self.get_border_width()
-        border_color = self.get_border_color()
-        fill_color = self.get_fill_color()
+        border_color = str(self.get_border_color())
+        fill_color = str(self.get_fill_color())
 
         canvas.draw_polygon(point_list, border_width, border_color, fill_color)
-
-    def get_bounds(self) -> Polygon:
-        dpi_factor = self.window.hidpi_factor
-
-        pos = self.get_render_pos() * dpi_factor
-        size = self.get_size() * dpi_factor
-
-        return Polygon(
-            Vector(pos.x, pos.y),
-            Vector(pos.x + size.x, pos.y),
-            Vector(pos.x + size.x, pos.y + size.y),
-            Vector(pos.x, pos.y + size.y),
-        )
 
 
 class Trap(Rect):
 
-    def __init__(self, world: 'World', pos: Vector, size: Vector):
+    def __init__(self, world: 'World', pos: Tuple[int, int], size: Tuple[int, int]):
         super().__init__(world)
 
         self.pos = pos
         self.size = size
         self.color = Color(150, 40, 40)
 
-    def get_pos(self) -> Vector:
+    def get_pos(self) -> Tuple[int, int]:
         return self.pos
 
-    def get_size(self) -> Vector:
+    def get_size(self) -> Tuple[int, int]:
         return self.size
 
     def get_border_color(self) -> Color:
@@ -175,7 +143,7 @@ class Finish(Rect):
 
 class Platform(Rect):
 
-    def __init__(self, world: 'World', pos: Vector, size: Vector,
+    def __init__(self, world: 'World', pos: Tuple[int, int], size: Tuple[int, int],
                  color: Color = Color(200, 200, 200), fill: bool = False):
         super().__init__(world)
 
@@ -184,10 +152,10 @@ class Platform(Rect):
         self.color = color
         self.fill = fill
 
-    def get_pos(self) -> Vector:
+    def get_pos(self) -> Tuple[int, int]:
         return self.pos
 
-    def get_size(self) -> Vector:
+    def get_size(self) -> Tuple[int, int]:
         return self.size
 
     def get_border_color(self) -> Color:
@@ -199,7 +167,27 @@ class Platform(Rect):
         return super().get_fill_color()
 
     def on_collide(self, player: 'Player'):
-        pass  # TODO: solid collision
+        bounds = self.get_bounds()
+        pbounds = player.get_bounds()
+
+        if (bounds.min.x < pbounds.min.x < bounds.max.x or
+                bounds.min.x < pbounds.max.x < bounds.max.x):
+            if pbounds.min.y <= bounds.min.y <= pbounds.max.y <= bounds.max.y:
+                # top
+                player.pos.y = bounds.min.y - player.size.y
+                player.on_ground = True
+            elif bounds.min.y <= pbounds.min.y <= bounds.max.y <= pbounds.max.y:
+                # bottom
+                player.pos.y = bounds.max.y
+
+        if (bounds.min.y < pbounds.min.y < bounds.max.y or
+                bounds.min.y < pbounds.max.y < bounds.max.y):
+            if pbounds.min.x <= bounds.min.x <= pbounds.max.x <= bounds.max.x:
+                # left
+                player.pos.x = bounds.min.x - player.size.x
+            elif bounds.min.x <= pbounds.min.x <= bounds.max.x <= pbounds.max.x:
+                # right
+                player.pos.x = bounds.max.x
 
 
 class Player(Renderable):
@@ -216,65 +204,87 @@ class Player(Renderable):
         self.accel = Vector(0, 0)
 
         self.on_ground = False
+        self.on_wall = False
         self.jumping = False
+        self.moving_x = False
+
+        self.colliding_with = None
+
+        self.score = 0
 
     def jump(self):
-        self.vel.y = PLAYER_VELOCITY[1]
-        self.accel.y = PLAYER_ACCELERATION[1]
+        self.on_ground = False
+        self.vel.y = -PLAYER_VELOCITY[1]
+        self.accel.y = -ACCEL_GRAVITY
 
-    def get_bounds(self) -> Polygon:
+    def get_bounds(self) -> BoundingBox:
+        pos = self.pos
+        size = self.size
+        return BoundingBox(pos, pos + size)
+
+    def get_render_bounds(self) -> BoundingBox:
+        bounds = self.get_bounds()
         dpi_factor = self.window.hidpi_factor
-
-        pos = (self.pos - self.world.level.offset) * dpi_factor
-        size = self.size * dpi_factor
-
-        return Polygon(
-            Vector(pos.x, pos.y),
-            Vector(pos.x + size.x, pos.y),
-            Vector(pos.x + size.x, pos.y + size.y),
-            Vector(pos.x, pos.y + size.y)
-        )
+        return BoundingBox(bounds.min * dpi_factor, bounds.max * dpi_factor)
 
     def on_key_down(self, key: int):
         if key == Key.SPACE:
             self.jumping = True  # Allow holding jump button.
-
             if self.on_ground:
                 self.jump()
 
         elif key == Key.KEY_A:
-            self.accel.x = -PLAYER_ACCELERATION[0]
+            self.vel.x = -PLAYER_VELOCITY[0]
 
         elif key == Key.KEY_D:
-            self.accel.x = PLAYER_ACCELERATION[0]
+            self.vel.x = PLAYER_VELOCITY[0]
 
-    def on_key_up(self, key: Key):
+    def on_key_up(self, key: int):
         if key == Key.SPACE:
             self.jumping = False
 
         elif key == Key.KEY_A:
-            if self.accel.x < 0:
-                self.accel.x = 0
+            if self.vel.x < 0:
+                self.vel.x = 0
 
         elif key == Key.KEY_D:
-            if self.accel.x > 0:
-                self.accel.x = 0
+            if self.vel.x > 0:
+                self.vel.x = 0
 
     def render(self, canvas: simplegui.Canvas):
         bounds = self.get_bounds()
+        dpi_factor = self.window.hidpi_factor
 
         # Draw player.
-        point_list = bounds.into_point_list()
+        point_list = [p.multiply(dpi_factor).into_tuple() for p in bounds]
         color = Color(120, 120, 200)
 
-        canvas.draw_polygon(point_list, 1, color, color)  # TODO: sprite?
+        canvas.draw_polygon(point_list, 1, str(color), str(color))  # TODO: sprite?
 
         # Update position.
         self.last_pos = self.pos.copy()
         self.pos.add(self.vel)
-        self.vel.add(self.accel)
+
+        if abs(self.vel.x) > PLAYER_VELOCITY[0]:
+            self.vel.x = math.copysign(PLAYER_VELOCITY[0], self.vel.x)
 
         # Check collisions position.
+        self.on_ground = False
+        self.on_wall = False
+
         for item in self.world.level.items:
             if item.collides_with(bounds):
                 item.on_collide(self)
+
+        self.vel.add(self.accel)
+
+        # Do gravity and platform collision
+        if self.on_ground:
+            self.accel.y = 0
+            self.vel.y = 0
+        else:
+            self.accel.y = -ACCEL_GRAVITY
+
+        if self.on_wall:
+            self.accel.x = 0
+            self.vel.x = 0
