@@ -5,6 +5,7 @@ __all__ = [
     'WINDOW_SIZE',
     'FULLSCREEN',
     'HIDPI_FACTOR',
+    'PLAYER_POTATO',
     'PLAYER_SIZE',
     'PLAYER_VELOCITY',
     'PLAYER_DEATH_VELOCITY',
@@ -62,7 +63,8 @@ FULLSCREEN = False  # Display fullscreen.
 
 HIDPI_FACTOR = _get_hidpi_factor()  # HiDPI screen scale factor.
 
-PLAYER_SIZE = (BLOCK_SIZE, BLOCK_SIZE * 2)
+PLAYER_POTATO = True
+PLAYER_SIZE = (BLOCK_SIZE, BLOCK_SIZE)
 PLAYER_VELOCITY = (5, 20)  # (run, jump)
 PLAYER_DEATH_VELOCITY = (10, 25)
 PLAYER_RESPAWN_X_OFFSET = 40

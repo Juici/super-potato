@@ -3,7 +3,7 @@ import simplegui
 
 from typing import TYPE_CHECKING, Tuple
 from constants import PLAYER_SIZE, PLAYER_VELOCITY, PLAYER_DEATH_VELOCITY, PLAYER_RESPAWN_X_OFFSET, \
-    ACCEL_GRAVITY, BLOCK_SIZE, GRID_SIZE, WINDOW_SIZE, Key
+    ACCEL_GRAVITY, BLOCK_SIZE, GRID_SIZE, WINDOW_SIZE, Key, PLAYER_POTATO
 from sprite import Sprite
 from util import Color
 from geom import Vector, BoundingBox
@@ -223,7 +223,9 @@ class Player(Renderable):
         self.score = 0
         self.lives = 3
 
-        self.sprite = Sprite
+        self.sprite_cols = 8
+        self.sprite = Sprite('assets/player.png', self.sprite_cols, 1)
+        self.roll = 0
 
     def jump(self):
         self.on_ground = False
@@ -293,14 +295,22 @@ class Player(Renderable):
         dpi_factor = self.window.hidpi_factor
 
         # Draw player.
-        point_list = [p.multiply(dpi_factor).into_tuple() for p in bounds]
-        color = Color(120, 120, 200)
+        if PLAYER_POTATO:
+            dest_center = self.pos + self.size / 2
+            index = (self.roll // self.sprite_cols) % self.sprite_cols
+            self.sprite.draw(canvas, dest_center * dpi_factor, self.size * dpi_factor, (index, 0))
+        else:
+            point_list = [p.multiply(dpi_factor).into_tuple() for p in bounds]
+            color = Color(120, 120, 200)
 
-        canvas.draw_polygon(point_list, 1, str(color), str(color))  # TODO: sprite?
+            canvas.draw_polygon(point_list, 1, str(color), str(color))
 
         # Update position.
         self.last_pos = self.pos.copy()
         self.pos.add(self.vel)
+
+        self.roll += self.vel.x * 2 / PLAYER_VELOCITY[0]
+        self.roll += 1
 
         if abs(self.vel.x) > PLAYER_VELOCITY[0]:
             self.vel.x = math.copysign(PLAYER_VELOCITY[0], self.vel.x)
