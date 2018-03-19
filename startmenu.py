@@ -5,6 +5,7 @@ from util import Color, Font
 from geom import Vector
 from window import Window, WindowHandler
 from button import Button
+from levels import Level
 
 __all__ = ['StartMenu']
 
@@ -35,6 +36,7 @@ class StartMenu(WindowHandler):
         button_font = Font('sans-serif', 16, dpi_factor)
 
         self.bg_image = util.load_image('assets/background.png')
+        self.logo = util.load_image('assets/logo.png')
 
         # Template to create new button
         start_btn = Button(window,
@@ -63,9 +65,14 @@ class StartMenu(WindowHandler):
         # Draw background.
         bg_size = (self.bg_image.get_width(), self.bg_image.get_height())
         bg_center = (bg_size[0] / 2, bg_size[1] / 2)
+        logo_size = (self.logo.get_width(), self.logo.get_height())
+        logo_center = (logo_size[0] / 2, logo_size[1] / 2)
         window_size = self.window.get_size()
         window_center = (window_size[0] / 2, window_size[1] / 2)
         canvas.draw_image(self.bg_image, bg_center, bg_size, window_center, window_size)
+        canvas.draw_image(self.logo, logo_center, logo_size, (window_center[0], window_center[1] - 150), (window_size[0] / 3, window_size[1] / 3))
+        #TODO: load highscore
+        canvas.draw_text("HIGH SCORE: " + str(Level.get_score), (500, 40), 40, "White")
 
         # Draw children.
         super().render(canvas)
