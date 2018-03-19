@@ -17,11 +17,11 @@ class World(WindowHandler):
 
     def __init__(self, window: Window, source: WindowHandler):
         super().__init__(window)
+        self.source = source
         self.levels = self._init_levels()
         self.level = self.levels[0]
         self.player = Player(self)
         self.window = window
-        self.source = source
 
         self.score_font = Font('monospace', 16, window.hidpi_factor)
         self.score_font_color = Color(255, 255, 255)
@@ -43,7 +43,7 @@ class World(WindowHandler):
     def _init_levels(self) -> List[Level]:
         levels: List[Level] = []
 
-        level1 = Level(1, (1, 4))
+        level1 = Level(self, 1, (1, 4))
 
         level1.add_item(Platform(self, (1, 1), (10, 1)))
         level1.add_item(Platform(self, (6, 2), (1, 1)))
@@ -58,7 +58,7 @@ class World(WindowHandler):
         level1.add_item(Trap(self, (34, 4), (2, 1)))
         level1.add_item(Finish(self, (40, 7), (1, 2)))
 
-        level2 = Level(2, (1, 4))
+        level2 = Level(self, 2, (1, 4))
 
         level2.add_item(Platform(self, (0, 1), (10, 1)))
         level2.add_item(Platform(self, (9, 3), (1, 2)))
