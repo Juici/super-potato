@@ -1,10 +1,12 @@
 import simplegui
 
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Tuple
+from constants import GRID_SIZE, BLOCK_SIZE
 from geom import Vector
 from level_items import LevelItem
-from constants import LEVEL_BACKGROUND_IMAGE, WINDOW_SIZE
-from util import load_image
+
+# from constants import LEVEL_BACKGROUND_IMAGE, WINDOW_SIZE
+# from util import load_image
 
 # Work around cyclic imports.
 if TYPE_CHECKING:
@@ -18,9 +20,12 @@ class Level(object):
     A game level.
     """
 
-    def __init__(self, level: int, start_pos: Vector, scroll: Vector = Vector(1, 0)):
+    def __init__(self, level: int, start_pos: Tuple[int, int], scroll: Vector = Vector(0.05, 0)):
         self.level = level
-        self.start_pos = start_pos
+        self.start_pos = Vector(
+            start_pos[0] * BLOCK_SIZE,
+            (GRID_SIZE[1] - start_pos[1] - 1) * BLOCK_SIZE,
+        )
 
         self.offset = Vector(0, 0)
         self.scroll = scroll
@@ -80,7 +85,7 @@ class Level(object):
         world.player.render(canvas)
 
         # Add the level scroll, mutating the current offset.
-        self.offset.add(self.scroll)
+        self.offset.add(self.scroll * BLOCK_SIZE)
 
         # Load next level.
         if self.finished:

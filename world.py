@@ -37,8 +37,9 @@ class World(WindowHandler):
     def _init_levels(self) -> List[Level]:
         levels: List[Level] = []
 
-        level1 = Level(1, Vector(100, 100))
-        level1.add_item(Platform(self, (1, 1), (4, 1)))
+        level1 = Level(1, (1, 4))
+        level1.add_item(Platform(self, (1, 1), (10, 1)))
+        level1.add_item(Platform(self, (14, 2), (4, 1)))
         levels.append(level1)
 
         return levels
