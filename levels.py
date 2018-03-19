@@ -37,6 +37,8 @@ class Level(object):
         self.items: List[LevelItem] = []
         self.finished = False
 
+        self.counter = 0
+
         # Just some initialisation stuff here; less to compute later.
         # self.background_offset = LEVEL_BACKGROUND_STRETCH_X / 2
         # self.background_image = load_image(LEVEL_BACKGROUND_IMAGE)
@@ -78,8 +80,20 @@ class Level(object):
         #                   real_size)
 
         # TODO: scale and position
-        world.player.score += 1
-        canvas.draw_text("SCORE: " + str(world.player.score), (750, 40), 40, "White")
+        self.counter += 1
+
+        if self.counter % BLOCK_SIZE == 0:
+            self.counter = 0
+            world.player.score += 1
+
+        dpi_factor = world.window.hidpi_factor
+
+        font = world.score_font
+        font_color = world.score_font_color
+        text = str(world.player.score)
+
+        canvas.draw_text(text, (20, 40), font.get_size(), str(font_color),
+                         font.get_face())
 
         # Render items
         for item in self.items:

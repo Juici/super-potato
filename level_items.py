@@ -104,7 +104,7 @@ class Trap(Rect):
 
         self.pos = pos
         self.size = size
-        self.color = Color(150, 40, 40)
+        self.color = Color(200, 80, 80)
 
     def get_pos(self) -> Tuple[int, int]:
         return self.pos
