@@ -12,6 +12,7 @@ __all__ = [
     'ACCEL_GRAVITY',
     'BUTTON_SIZE',
     'LEVEL_BACKGROUND_IMAGE',
+    'LEVEL_USE_BACKGROUND',
     'GRID_SIZE',
     'BLOCK_SIZE',
     'Key'
@@ -55,8 +56,8 @@ ACCEL_GRAVITY = -1.5
 
 BUTTON_SIZE = (200, 50)
 
+LEVEL_USE_BACKGROUND = True # Can cause lag on weak systems so this is optional
 LEVEL_BACKGROUND_IMAGE = 'assets/background.png'
-
 LEVEL_BACKGROUND_DIMS = (1920, 1080)
 LEVEL_BACKGROUND_STRETCH_X = WINDOW_SIZE[0]
 
