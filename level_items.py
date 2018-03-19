@@ -141,7 +141,7 @@ class Finish(Rect):
         return self.color
 
     def on_collide(self, player: 'Player'):
-        pass  # TODO: finish logic
+        self.world.level.finish()
 
 
 class Platform(Rect):
