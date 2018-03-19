@@ -47,8 +47,8 @@ FULLSCREEN = False  # Display fullscreen.
 HIDPI_FACTOR = _get_hidpi_factor()  # HiDPI screen scale factor.
 
 PLAYER_SIZE = (BLOCK_SIZE, BLOCK_SIZE * 2)
-PLAYER_VELOCITY = (2.8, 1)  # (run, jump)
-ACCEL_GRAVITY = -0.8
+PLAYER_VELOCITY = (5, 15)  # (run, jump)
+ACCEL_GRAVITY = -1.2
 # PLAYER_VELOCITY_DIVISOR = 1.05
 
 BUTTON_SIZE = (200, 50)

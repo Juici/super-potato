@@ -171,8 +171,7 @@ class Platform(Rect):
         bounds = self.get_bounds()
         pbounds = player.get_bounds()
 
-        if (pbounds.min.y <= bounds.min.y and
-                pbounds.max.y <= bounds.max.y):
+        if pbounds.min.y <= bounds.min.y <= pbounds.max.y <= bounds.max.y:
             # falling down
             player.pos.y = bounds.min.y - player.size.y
             player.on_ground = True
@@ -199,9 +198,10 @@ class Player(Renderable):
 
         self.score = 0
 
-    # def jump(self):
-    #    self.vel.y = PLAYER_VELOCITY[1]
-    #    self.accel.y = ACCEL_GRAVITY[1]
+    def jump(self):
+        self.on_ground = False
+        self.vel.y = -PLAYER_VELOCITY[1]
+        self.accel.y = -ACCEL_GRAVITY
 
     def get_bounds(self) -> BoundingBox:
         pos = self.pos
@@ -216,6 +216,8 @@ class Player(Renderable):
     def on_key_down(self, key: int):
         if key == Key.SPACE:
             self.jumping = True  # Allow holding jump button.
+            if self.on_ground:
+                self.jump()
 
         elif key == Key.KEY_A:
             self.vel.x = -PLAYER_VELOCITY[0]
