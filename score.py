@@ -12,5 +12,8 @@ class Score:
     def reset_score(self):
         self.score = 0
 
+    def get_score(self):
+        return self.score
+
     def render(self, canvas: simplegui.Canvas):
         canvas.draw_text("SCORE: " + str(self.score), WINDOW_SIZE, 16, "White")
