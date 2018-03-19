@@ -158,7 +158,7 @@ class Platform(Rect):
 
         self.pos = pos
         self.size = size
-        self.color = Color(200, 200, 200)
+        self.color = Color(80, 80, 80)
 
     def get_pos(self) -> Tuple[int, int]:
         return self.pos
