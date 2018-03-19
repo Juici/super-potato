@@ -35,6 +35,8 @@ class StartMenu(WindowHandler):
         button_font = Font('sans-serif', 16, dpi_factor)
 
         self.bg_image = util.load_image('assets/background.png')
+        self.bg_size = (self.bg_image.get_width(), self.bg_image.get_height())
+        self.bg_center = (self.bg_size[0] / 2, self.bg_size[1] / 2)
 
         self.logo = util.load_image('assets/logo.png')
         self.logo_size = (self.logo.get_width(), self.logo.get_height())
@@ -57,24 +59,26 @@ class StartMenu(WindowHandler):
                           Vector(win_center[0] - button_size[0] / 2,
                                  win_center[1] + button_size[1]),
                           Vector(*button_size),
-                           Color(0, 102, 255), Color(255, 255, 255),
-                           Color(0, 80, 230), Color(255, 255, 255),
+                          Color(0, 102, 255), Color(255, 255, 255),
+                          Color(0, 80, 230), Color(255, 255, 255),
                           font=button_font)
         help_btn.set_click_handler(self.help)
         self.children.append(help_btn)
 
     def render(self, canvas: simplegui.Canvas):
-        # Draw background.
-        bg_size = (self.bg_image.get_width(), self.bg_image.get_height())
-        bg_center = (bg_size[0] / 2, bg_size[1] / 2)
         window_size = self.window.get_size()
         window_center = (window_size[0] / 2, window_size[1] / 2)
-        canvas.draw_image(self.bg_image, bg_center, bg_size, window_center, window_size)
+
+        # Draw background.
+        canvas.draw_image(self.bg_image, self.bg_center, self.bg_size, window_center, window_size)
 
         # Draw logo
-        canvas.draw_image(self.logo, self.logo_center, self.logo_size, (window_center[0], window_center[1] - 250), (window_size[0] / 3, window_size[1] / 3))
-        #TODO: load highscore
-        #canvas.draw_text("HIGH SCORE: " + str(Level.get_score), (500, 40), 40, "White")
+        canvas.draw_image(self.logo, self.logo_center, self.logo_size,
+                          (window_center[0], window_size[1] / 4),
+                          (window_size[0] / 4, window_size[1] / 4))
+
+        # TODO: load highscore
+        # canvas.draw_text("HIGH SCORE: " + str(Level.get_score), (500, 40), 40, "White")
 
         # Draw children.
         super().render(canvas)
