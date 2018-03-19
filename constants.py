@@ -8,7 +8,6 @@ __all__ = [
     'PLAYER_SIZE',
     'PLAYER_VELOCITY',
     'ACCEL_GRAVITY',
-    'ACCEL_JUMP',
     'BUTTON_SIZE',
     'LEVEL_BACKGROUND_IMAGE',
     'GRID_SIZE',
@@ -47,9 +46,8 @@ FULLSCREEN = False  # Display fullscreen.
 HIDPI_FACTOR = _get_hidpi_factor()  # HiDPI screen scale factor.
 
 PLAYER_SIZE = (BLOCK_SIZE, BLOCK_SIZE * 2)
-PLAYER_VELOCITY = (5, 15)  # (run, jump)
-ACCEL_GRAVITY = -1.2
-# PLAYER_VELOCITY_DIVISOR = 1.05
+PLAYER_VELOCITY = (5, 20)  # (run, jump)
+ACCEL_GRAVITY = -1.5
 
 BUTTON_SIZE = (200, 50)
 
@@ -57,11 +55,6 @@ LEVEL_BACKGROUND_IMAGE = 'assets/background.png'
 
 LEVEL_BACKGROUND_DIMS = (1920, 1080)
 LEVEL_BACKGROUND_STRETCH_X = WINDOW_SIZE[0]
-
-ACCEL_JUMP = 2
-
-
-# LEVEL_BLOCK_SCALE_PX = (WINDOW_SIZE[0] / LEVEL_GRID[0], WINDOW_SIZE[1] / LEVEL_GRID[1])
 
 
 # Better than the basic simplegui key map.

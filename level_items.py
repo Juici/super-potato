@@ -2,8 +2,7 @@ import math
 import simplegui
 
 from typing import TYPE_CHECKING, Tuple
-from constants import PLAYER_SIZE, PLAYER_VELOCITY, ACCEL_GRAVITY, ACCEL_JUMP, BLOCK_SIZE, \
-    GRID_SIZE, Key
+from constants import PLAYER_SIZE, PLAYER_VELOCITY, ACCEL_GRAVITY, BLOCK_SIZE, GRID_SIZE, Key
 from util import Color
 from geom import Vector, BoundingBox
 from window import Renderable
@@ -171,22 +170,24 @@ class Platform(Rect):
         bounds = self.get_bounds()
         pbounds = player.get_bounds()
 
-        if bounds.min.x <= pbounds.min.x or pbounds.max.x <= bounds.max.x:
+        if (bounds.min.x < pbounds.min.x < bounds.max.x or
+                bounds.min.x < pbounds.max.x < bounds.max.x):
             if pbounds.min.y <= bounds.min.y <= pbounds.max.y <= bounds.max.y:
                 # top
                 player.pos.y = bounds.min.y - player.size.y
                 player.on_ground = True
-            # elif bounds.min.y <= pbounds.min.y <= bounds.max.y <= pbounds.max.y:
-            #     # bottom
-            #     player.pos.y = bounds.max.y
+            elif bounds.min.y <= pbounds.min.y <= bounds.max.y <= pbounds.max.y:
+                # bottom
+                player.pos.y = bounds.max.y
 
-        # if bounds.min.y <= pbounds.min.y or pbounds.max.y <= bounds.max.y:
-        #     if pbounds.min.x <= bounds.min.x <= pbounds.max.x <= bounds.max.x:
-        #         # left
-        #         player.pos.x = bounds.min.x - player.size.x
-        #     elif bounds.min.x <= pbounds.min.x <= bounds.max.x <= pbounds.max.x:
-        #         # right
-        #         player.pos.x = bounds.max.x
+        if (bounds.min.y < pbounds.min.y < bounds.max.y or
+                bounds.min.y < pbounds.max.y < bounds.max.y):
+            if pbounds.min.x <= bounds.min.x <= pbounds.max.x <= bounds.max.x:
+                # left
+                player.pos.x = bounds.min.x - player.size.x
+            elif bounds.min.x <= pbounds.min.x <= bounds.max.x <= pbounds.max.x:
+                # right
+                player.pos.x = bounds.max.x
 
 
 class Player(Renderable):
@@ -203,6 +204,7 @@ class Player(Renderable):
         self.accel = Vector(0, 0)
 
         self.on_ground = False
+        self.on_wall = False
         self.jumping = False
         self.moving_x = False
 
@@ -268,6 +270,7 @@ class Player(Renderable):
 
         # Check collisions position.
         self.on_ground = False
+        self.on_wall = False
 
         for item in self.world.level.items:
             if item.collides_with(bounds):
@@ -281,3 +284,7 @@ class Player(Renderable):
             self.vel.y = 0
         else:
             self.accel.y = -ACCEL_GRAVITY
+
+        if self.on_wall:
+            self.accel.x = 0
+            self.vel.x = 0
